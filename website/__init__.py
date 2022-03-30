@@ -3,6 +3,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from os import path
+import json
 
 db = SQLAlchemy()
 DB_NAME = "power_database.db"
@@ -29,7 +30,7 @@ def create_app():
     create_database(app)
 
     # Define all possible api calls
-    # startRestfulAPI(app)
+    startRestfulAPI(app)
 
     return app
 
@@ -45,12 +46,55 @@ def startRestfulAPI(app):
     api = Api(app)
 
     post_usage_args = reqparse.RequestParser()
-    post_usage_args.add_argument("time", type=str, help="Time at the end of interval required as a string...", required=True)
+    post_usage_args.add_argument("datetime", type=str, help="Date and time at the end of interval required as a string...", required=True)
     post_usage_args.add_argument("usage", type=int, help="Usage (Wh) required as an integer...", required=True)
 
     post_peak_args = reqparse.RequestParser()
-    post_peak_args.add_argument("time", type=str, help="Time at the end of interval required as a string...", required=True)
+    post_peak_args.add_argument("datetime", type=str, help="Date and time at the end of interval required as a string...", required=True)
     post_peak_args.add_argument("peak", type=int, help="Peak demand (W) required as an integer...", required=True)
 
+    usage_fields = {
+        "id": fields.Integer,
+        "datetime": fields.String,
+        "usage": fields.Integer
+    }
 
+    peak_fields = {
+        "id": fields.Integer,
+        "datetime": fields.String,
+        "peak": fields.Integer
+    }
+
+    class postUsage(Resource):
+
+        @marshal_with(usage_fields)
+        def post(self):
+
+            args = post_usage_args.parse_args()
+
+            print(f'USAGE:\n\tdatetime: {args["datetime"]}\n\tusage: {str(args["usage"])}')
+
+            feedback = {
+                "message": "Usage Received"
+            }
+
+            return feedback
+    
+    class postPeak(Resource):
+
+        @marshal_with(peak_fields)
+        def post(self):
+
+            args = post_peak_args.parse_args()
+
+            print(f'USAGE:\n\tdatetime: {args["datetime"]}\n\tpeak: {str(args["peak"])}')
+
+            feedback = {
+                "message": "Peak Received"
+            }
+
+            return feedback
+    
+    api.add_resource(postUsage, "/postUsage")
+    api.add_resource(postPeak, "/postPeak")
 
