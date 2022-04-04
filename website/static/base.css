@@ -18,6 +18,13 @@ nav{
     width: 100%;
     padding: 1rem 3rem;
     background-color: lightgray;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+main{
+    padding: 2rem;
 }
 .flash_success, .flash_error{
     position: absolute;
@@ -50,4 +57,11 @@ nav{
 }
 .submit{
     padding: 0.25rem;
+}
+.auth_box{
+    display: flex;
+    align-items: center;
+}
+.auth_box span {
+    margin: 0.5rem;    
 }

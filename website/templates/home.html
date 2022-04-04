@@ -2,6 +2,11 @@
 {% block style %}{% endblock %}
 {% block title %}Home{% endblock %}
 
+{% block navlinks %}
+<a href="{{ url_for('views.auth') }}">Authenticate</a>
+<a href="{{ url_for('views.logout') }}">Logout</a>
+{% endblock %}
+
 {% block heading %}
 <h1>Home</h1>
 {% endblock %}

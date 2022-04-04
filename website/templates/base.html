@@ -19,6 +19,9 @@
     <body>
         <nav>
             {% block heading %}{% endblock %}
+            <div class="navlinks">
+                {% block navlinks %}{% endblock %}
+            </div>
         </nav>
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}

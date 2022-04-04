@@ -19,3 +19,5 @@ class Client(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True)
     hash = db.Column(db.String(100))
+    usages = db.relationship('Usage')
+    peaks = db.relationship('Peak')

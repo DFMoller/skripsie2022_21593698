@@ -2,16 +2,20 @@
 {% block title %}Login{% endblock %}
 {% block heading %}<h1>Login</h1>{% endblock %}
 
+{% block navlinks %}
+<a href="{{ url_for('views.signup') }}">Sign Up</a>
+{% endblock %}
+
 {% block main %}
 <form method="POST" class="auth_form">
     <h3>Log In</h3>
     <div class="form_box">
         <label for="email_input">Email</label>
-        <input class="character_input" id="email_input" type="email" name="email" required>
+        <input class="character_input" id="email_input" type="email" name="email" value="{{email}}" required>
     </div>
     <div class="form_box">
         <label for="pwd_input">Password</label>
-        <input class="character_input" id="pwd_input" type="password" name="pwd" required>
+        <input class="character_input" id="pwd_input" type="password" name="pwd" value="{{pwd}}" required>
     </div>
     <div class="form_box">
         <input class="submit" type="submit">
