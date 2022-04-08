@@ -65,3 +65,15 @@ main{
 .auth_box span {
     margin: 0.5rem;    
 }
+.home-block{
+    display: flex;
+    align-items: top;
+}
+.table-box{
+    display: flex;
+    flex-direction: column;
+    margin: 2rem;
+}
+th, td{
+    padding: 0.5rem;
+}

@@ -10,3 +10,42 @@
 {% block heading %}
 <h1>Home</h1>
 {% endblock %}
+
+{% block main %}
+<div class="home-block">
+    <div class="table-box">
+        <h3>Usage Entries</h3>
+        <table>
+            <tr>
+                <th>User ID</th>
+                <th>Date and Time</th>
+                <th>Usage</th>
+            </tr>
+            {% for entry in usage %}
+            <tr>
+                <td>{{ entry.id }}</td>
+                <td>{{ entry.datetime }}</td>
+                <td>{{ entry.usage }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="table-box">
+        <h3>Peak Entries</h3>
+        <table>
+            <tr>
+                <th>User ID</th>
+                <th>Date and Time</th>
+                <th>Peak</th>
+            </tr>
+            {% for entry in peak %}
+            <tr>
+                <td>{{ entry.id }}</td>
+                <td>{{ entry.datetime }}</td>
+                <td>{{ entry.peak }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+{% endblock %}
