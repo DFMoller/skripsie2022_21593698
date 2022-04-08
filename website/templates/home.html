@@ -17,6 +17,7 @@
         <h3>Usage Entries</h3>
         <table>
             <tr>
+                <th>Entry ID</th>
                 <th>User ID</th>
                 <th>Date and Time</th>
                 <th>Usage</th>
@@ -24,6 +25,7 @@
             {% for entry in usage %}
             <tr>
                 <td>{{ entry.id }}</td>
+                <td>{{ entry.client_id }}</td>
                 <td>{{ entry.datetime }}</td>
                 <td>{{ entry.usage }}</td>
             </tr>
@@ -34,6 +36,7 @@
         <h3>Peak Entries</h3>
         <table>
             <tr>
+                <th>Entry ID</th>
                 <th>User ID</th>
                 <th>Date and Time</th>
                 <th>Peak</th>
@@ -41,6 +44,7 @@
             {% for entry in peak %}
             <tr>
                 <td>{{ entry.id }}</td>
+                <td>{{ entry.client_id }}</td>
                 <td>{{ entry.datetime }}</td>
                 <td>{{ entry.peak }}</td>
             </tr>
