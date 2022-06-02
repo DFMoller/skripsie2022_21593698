@@ -1,3 +1,5 @@
+@import "home.css";
+
 * {
     margin: 0;
     padding: 0;
@@ -7,7 +9,8 @@
 body {
 height: 100vh;
 width: 100%;
-overflow: hidden;
+overflow-x: hidden;
+overflow-y: scroll;
 display: flex;
 flex-direction: column;
 align-items: center;
@@ -16,15 +19,23 @@ font-family: "Poppins", sans-serif;
 
 nav{
     width: 100%;
-    padding: 1rem 3rem;
-    background-color: lightgray;
+    padding: 1rem 5rem;
+    /* background-color: lightgray; */
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
 }
+nav h1{
+    color: #005377;
+}
+nav a{
+    color: #005377;
+    text-decoration: none;
+}
 main{
     padding: 2rem;
+    width: 100%;
 }
 .flash_success, .flash_error{
     position: absolute;
@@ -64,10 +75,6 @@ main{
 }
 .auth_box span {
     margin: 0.5rem;    
-}
-.home-block{
-    display: flex;
-    align-items: top;
 }
 .table-box{
     display: flex;

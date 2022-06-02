@@ -1,18 +1,30 @@
+from enum import auto
+from sqlalchemy import false
 from . import db, generate_api_key
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from .models import Client, Usage, Peak
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
+import pandas as pd
+import pygal, datetime
+from .plotting import prepare_usage_data,prepare_peak_data
 
 views = Blueprint('views', __name__) # don't have to call it the file name
 
 @views.route('/', methods=["GET", "POST"])
 @login_required
 def home():
-    # This page will contain all data specific to the user
+    
     usage_entries = Usage.query.filter_by(client_id=current_user.id)
     peak_entries = Peak.query.filter_by(client_id=current_user.id)
-    return render_template("home.html", user=current_user, usage=usage_entries, peak=peak_entries)
+    print("Before prepare_usage_data()")
+    usage_values, xlabels = prepare_usage_data(usage_entries)
+    print("After prepare_usage_data()")
+    peak_values = prepare_peak_data(peak_entries)
+
+    today = str(datetime.datetime.today().date())
+    
+    return render_template("home.html", user=current_user, xlabels=xlabels, usage_values=usage_values, peak_values=peak_values, date=today)
 
 @views.route('/signup', methods=["GET", "POST"])
 def signup():
