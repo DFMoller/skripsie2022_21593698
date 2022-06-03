@@ -13,9 +13,8 @@ def prepare_usage_data(usage_entries):
     today = datetime.datetime.today().date()
     for index, row in usage_df.iterrows():
         if row["datetime"].date() == today:
-            xlabels.append(datetime.datetime.strftime(row["datetime"], "%H:%S"))
+            xlabels.append(datetime.datetime.strftime(row["datetime"], "%H:%M"))
             usage_values.append(row["usage"])
-            print("Usage Row")
     return usage_values, xlabels
 
 def prepare_peak_data(peak_entries):
@@ -30,5 +29,4 @@ def prepare_peak_data(peak_entries):
     for index, row in peak_df.iterrows():
         if row["datetime"].date() == today:
             peak_values.append(row["peak"])
-            print("Peak Row")
     return peak_values

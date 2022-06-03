@@ -17,11 +17,8 @@ def home():
     
     usage_entries = Usage.query.filter_by(client_id=current_user.id)
     peak_entries = Peak.query.filter_by(client_id=current_user.id)
-    print("Before prepare_usage_data()")
     usage_values, xlabels = prepare_usage_data(usage_entries)
-    print("After prepare_usage_data()")
     peak_values = prepare_peak_data(peak_entries)
-
     today = str(datetime.datetime.today().date())
     
     return render_template("home.html", user=current_user, xlabels=xlabels, usage_values=usage_values, peak_values=peak_values, date=today)
