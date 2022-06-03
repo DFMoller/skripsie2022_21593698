@@ -9,7 +9,6 @@ def prepare_usage_data(usage_entries, hours, bars):
     start = last_interval - datetime.timedelta(hours=hours)
     halfhours = hours*2
     usage_list = []
-    print("Start: ",start.strftime("%Y-%m-%d %H:%M"))
     for x in usage_entries:
         dt = datetime.datetime.strptime(x.datetime, "%Y-%m-%d %H:%M")
         usage_list.append([dt, x.usage])
