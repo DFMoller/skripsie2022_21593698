@@ -9,3 +9,25 @@
     width: 100%;
     height: 80vh;
 }
+.radios-tab{
+    display: flex;
+    align-items: center;
+}
+.radios-title{
+    color: #005377;
+}
+.radios-title, .radios{
+    margin: 0.3rem 1rem;
+}
+.radios{
+    display: flex;
+}
+.radios > label{
+    margin: 0 0.3rem;
+    display: flex;
+    align-items: center;
+    color: #005377;
+}
+.radios input{
+    margin-right: 0.3rem;
+}
