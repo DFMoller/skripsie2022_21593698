@@ -8,20 +8,42 @@ from flask_login import login_user, login_required, logout_user, current_user
 import pandas as pd
 import pygal, datetime
 from .plotting import prepare_usage_data,prepare_peak_data
+from enum import Enum
 
 views = Blueprint('views', __name__) # don't have to call it the file name
+
+class Period(Enum):
+    p24h = 1
+    p72h = 2
+    p1w = 3
 
 @views.route('/', methods=["GET", "POST"])
 @login_required
 def home():
+
+    hours = 0
+    bars = 0
+    if request.method == "GET":
+        hours = 24
+    elif request.method == "POST":
+        hours = int(request.form.get("period-selection"))
+
+    if hours == 24: bars = 48
+    elif hours == 72: bars = 24
+    elif hours == 168: bars = 7
+
     
     usage_entries = Usage.query.filter_by(client_id=current_user.id)
     peak_entries = Peak.query.filter_by(client_id=current_user.id)
-    usage_values, xlabels = prepare_usage_data(usage_entries)
-    peak_values = prepare_peak_data(peak_entries)
+
+    prepare_usage_data(usage_entries, hours, bars)
+
+    usage_values, xlabels = prepare_usage_data(usage_entries, hours, bars)
+    peak_values= prepare_peak_data(peak_entries, hours, bars)
+
     today = str(datetime.datetime.today().date())
     
-    return render_template("home.html", user=current_user, xlabels=xlabels, usage_values=usage_values, peak_values=peak_values, date=today)
+    return render_template("home.html", user=current_user, xlabels=xlabels, usage_values=usage_values, peak_values=peak_values, date=today, hours=hours)
 
 @views.route('/signup', methods=["GET", "POST"])
 def signup():

@@ -32,6 +32,7 @@ nav h1{
 nav a{
     color: #005377;
     text-decoration: none;
+    margin: 0.3rem 0.5rem;
 }
 main{
     padding: 2rem;
@@ -83,4 +84,11 @@ main{
 }
 th, td{
     padding: 0.5rem;
+}
+
+@media screen and (max-width: 1000px){
+    nav{
+        flex-direction: column;
+        padding: 1rem 0;
+    }
 }
