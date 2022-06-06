@@ -1,4 +1,5 @@
 from time import strftime
+import time
 import pandas as pd
 import datetime
 
@@ -27,15 +28,15 @@ def get_hours(data_entries, hours, bars):
         data_list.append([dt, x.usage, x.peak])
     data_list = sorted(data_list, key = lambda x: x[0])
     if len(data_list) > 0:
-        if data_list[0][0] > start: data_list.insert(0, [start, 0, 0])
+        if data_list[0][0] > (start + datetime.timedelta(seconds=5)): data_list.insert(0, [start+timediff, 0, 0])
         if data_list[-1][0] > last_interval: data_list.pop()
         if data_list[-1][0] < last_interval: data_list.append([last_interval, 0, 0])
     filled_list = []
-    last_dt = start - timediff
+    last_dt = start
     for item in data_list:
-        if item[0] >= start:
+        if item[0] >= (start + timediff):
             diff = item[0] - last_dt
-            num_missing = int((diff - timediff)/timediff)
+            num_missing = round((diff - timediff)/timediff)
             if num_missing > 0:
                 for i in range(num_missing):
                     filled_list.append([last_dt + timediff*(i+1), 0, 0])
@@ -66,17 +67,14 @@ def get_hours(data_entries, hours, bars):
     return usage_values, peak_values, xlabels
 
 def get_week(data_entries):
-    data_list = []
     today = datetime.datetime.today().date()
     days = []
     for day in range(7):
         days.append([today - datetime.timedelta(days=(6 - day)), 0, 0])
-    accum = 0
-    max_peak = 0
     for day in days:
         for x in data_entries:
             dt = datetime.datetime.strptime(x.datetime, "%Y-%m-%d %H:%M")
-            if dt.date() == day:
+            if dt.date() == day[0]:
                 day[1] += x.usage
                 if x.peak > day[2]: day[2] = x.peak
     usage_values = []
