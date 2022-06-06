@@ -16,7 +16,7 @@ def prepare_chart_data(data_entries, key):
         return get_week(data_entries)
 
 def get_hours(data_entries, hours, bars):
-    now = datetime.datetime.today()
+    now = datetime.datetime.today().replace(microsecond=0)
     timediff = datetime.timedelta(minutes=30)
     if now.minute > 30: last_interval = now.replace(minute=30, second=0)
     else: last_interval = now.replace(minute=0, second=0)
