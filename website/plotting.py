@@ -38,7 +38,7 @@ def get_hours(data_entries, hours, bars):
             num_missing = int((diff - timediff)/timediff)
             if num_missing > 0:
                 for i in range(num_missing):
-                    filled_list.append([last_dt + timediff*(i+1), 0])
+                    filled_list.append([last_dt + timediff*(i+1), 0, 0])
             filled_list.append(item)
             last_dt = item[0]
     accum = 0
