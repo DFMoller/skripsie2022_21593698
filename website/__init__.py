@@ -27,19 +27,18 @@ def create_app():
     app.register_blueprint(views, url_prefix='/') # prefix would go before any routes in blueprints
 
     # Make sure this model file runs befor we initialize our Database
-    from .models import Usage, Peak, Client
+    from .models import Data, Client
 
     # Check if db exists, else create new
     create_database(app)
 
     # Register Admin Views
     admin = Admin(app)
-    admin.add_view(ModelView(Usage, db.session))
-    admin.add_view(ModelView(Peak, db.session))
+    admin.add_view(ModelView(Data, db.session))
     admin.add_view(ModelView(Client, db.session))
 
     # Define all possible api calls
-    startRestfulAPI(app, Usage, Peak)
+    startRestfulAPI(app, Data)
 
     # Setup Login Manager
     login_manager = LoginManager()
@@ -61,19 +60,15 @@ def create_database(app):
     else:
         print('Database Found!')
 
-def startRestfulAPI(app, Usage, Peak):
+def startRestfulAPI(app, Data):
     
     api = Api(app)
 
-    post_usage_args = reqparse.RequestParser()
-    post_usage_args.add_argument("datetime", type=str, help="Date and time at the end of interval required as a string...", required=True)
-    post_usage_args.add_argument("usage", type=int, help="Usage (Wh) required as an integer...", required=True)
-    post_usage_args.add_argument("api_key", type=str, help="API key required...", required=True)
-
-    post_peak_args = reqparse.RequestParser()
-    post_peak_args.add_argument("datetime", type=str, help="Date and time at the end of interval required as a string...", required=True)
-    post_peak_args.add_argument("peak", type=int, help="Peak demand (W) required as an integer...", required=True)
-    post_peak_args.add_argument("api_key", type=str, help="API key required...", required=True)
+    post_args = reqparse.RequestParser()
+    post_args.add_argument("datetime", type=str, help="Date and time at the end of interval required as a string...", required=True)
+    post_args.add_argument("usage", type=int, help="Usage (Wh) required as an integer...", required=True)
+    post_args.add_argument("peak", type=int, help="Peak (W) required as an integer...", required=True)
+    post_args.add_argument("api_key", type=str, help="API key required...", required=True)
 
     usage_fields = {
         "id": fields.Integer,
@@ -82,59 +77,52 @@ def startRestfulAPI(app, Usage, Peak):
         "api_key": fields.String
     }
 
-    peak_fields = {
-        "id": fields.Integer,
-        "datetime": fields.String,
-        "peak": fields.Integer,
-        "api_key": fields.String
-    }
-
-    class postUsage(Resource):
+    class postData(Resource):
 
         # @marshal_with(usage_fields)
         def post(self):
 
-            args = post_usage_args.parse_args()
+            args = post_args.parse_args()
             feedback = {}
 
             print(f'USAGE:\n\tdatetime: {args["datetime"]}\n\tusage: {str(args["usage"])}\n\tAPI_KEY: {args["api_key"]}')
 
             try:
                 decoded = jwt.decode(args['api_key'], app.config['SECRET_KEY'], algorithms=["HS256"])
-                new_usage = Usage(datetime=args['datetime'], usage=args['usage'], client_id=decoded['id'])
-                db.session.add(new_usage)
+                new_data = Data(datetime=args['datetime'], usage=args['usage'], peak=args['peak'], client_id=decoded['id'])
+                db.session.add(new_data)
                 db.session.commit()
-                feedback["message"] = "Usage data received and saved"
+                feedback["message"] = "Usage and Peak data received and saved"
             except InvalidSignatureError:
                 feedback["message"] = "Invalid API Key"
                 return feedback, 401
 
             return feedback
     
-    class postPeak(Resource):
+    # class postPeak(Resource):
 
-        # @marshal_with(peak_fields)
-        def post(self):
+    #     # @marshal_with(peak_fields)
+    #     def post(self):
 
-            args = post_peak_args.parse_args()
-            feedback = {}
+    #         args = post_peak_args.parse_args()
+    #         feedback = {}
 
-            print(f'PEAK:\n\tdatetime: {args["datetime"]}\n\tpeak: {str(args["peak"])}\n\tAPI_KEY: {args["api_key"]}')
+    #         print(f'PEAK:\n\tdatetime: {args["datetime"]}\n\tpeak: {str(args["peak"])}\n\tAPI_KEY: {args["api_key"]}')
 
-            try:
-                decoded = jwt.decode(args['api_key'], app.config['SECRET_KEY'], algorithms=["HS256"])
-                new_peak = Peak(datetime=args['datetime'], peak=args['peak'], client_id=decoded['id'])
-                db.session.add(new_peak)
-                db.session.commit()
-                feedback["message"] = "Peak data received and saved"
-            except InvalidSignatureError:
-                feedback["message"] = "Invalid API Key"
-                return feedback, 401
+    #         try:
+    #             decoded = jwt.decode(args['api_key'], app.config['SECRET_KEY'], algorithms=["HS256"])
+    #             new_peak = Peak(datetime=args['datetime'], peak=args['peak'], client_id=decoded['id'])
+    #             db.session.add(new_peak)
+    #             db.session.commit()
+    #             feedback["message"] = "Peak data received and saved"
+    #         except InvalidSignatureError:
+    #             feedback["message"] = "Invalid API Key"
+    #             return feedback, 401
 
-            return feedback
+    #         return feedback
     
-    api.add_resource(postUsage, "/postUsage")
-    api.add_resource(postPeak, "/postPeak")
+    api.add_resource(postData, "/postData")
+    # api.add_resource(postPeak, "/postPeak")
 
 def generate_api_key(id, email):
     new_key = jwt.encode({"id": id, "email": email}, app.config['SECRET_KEY'], algorithm="HS256")

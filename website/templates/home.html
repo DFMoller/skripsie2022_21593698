@@ -8,17 +8,17 @@
         <h4 class="radios-title">Period:</h4>
         <div class="radios">
             {% if hours == 24 %}
-            <label for="radio-24h"><input onchange="reloadPage()" id="radio-24h" value="24" type="radio" name="period-selection" checked>Last 24h</label>
-            <label for="radio-72h"><input onchange="reloadPage()" id="radio-72h" value="72" type="radio" name="period-selection">Last 72h</label>
-            <label for="radio-1w"><input onchange="reloadPage()" id="radio-1w" value="168" type="radio" name="period-selection">Last Week</label>
+            <label for="radio-24h"><input onchange="reloadPage()" id="radio-24h" value="24h" type="radio" name="period-selection" checked>Last 24h</label>
+            <label for="radio-72h"><input onchange="reloadPage()" id="radio-72h" value="72h" type="radio" name="period-selection">Last 72h</label>
+            <label for="radio-1w"><input onchange="reloadPage()" id="radio-1w" value="week" type="radio" name="period-selection">Last Week</label>
             {% elif hours == 72 %}
-            <label for="radio-24h"><input onchange="reloadPage()" id="radio-24h" value="24" type="radio" name="period-selection">Last 24h</label>
-            <label for="radio-72h"><input onchange="reloadPage()" id="radio-72h" value="72" type="radio" name="period-selection" checked>Last 72h</label>
-            <label for="radio-1w"><input onchange="reloadPage()" id="radio-1w" value="168" type="radio" name="period-selection">Last Week</label>
+            <label for="radio-24h"><input onchange="reloadPage()" id="radio-24h" value="24h" type="radio" name="period-selection">Last 24h</label>
+            <label for="radio-72h"><input onchange="reloadPage()" id="radio-72h" value="72h" type="radio" name="period-selection" checked>Last 72h</label>
+            <label for="radio-1w"><input onchange="reloadPage()" id="radio-1w" value="week" type="radio" name="period-selection">Last Week</label>
             {% elif hours == 168 %}
-            <label for="radio-24h"><input onchange="reloadPage()" id="radio-24h" value="24" type="radio" name="period-selection">Last 24h</label>
-            <label for="radio-72h"><input onchange="reloadPage()" id="radio-72h" value="72" type="radio" name="period-selection">Last 72h</label>
-            <label for="radio-1w"><input onchange="reloadPage()" id="radio-1w" value="168" type="radio" name="period-selection" checked>Last Week</label>
+            <label for="radio-24h"><input onchange="reloadPage()" id="radio-24h" value="24h" type="radio" name="period-selection">Last 24h</label>
+            <label for="radio-72h"><input onchange="reloadPage()" id="radio-72h" value="72h" type="radio" name="period-selection">Last 72h</label>
+            <label for="radio-1w"><input onchange="reloadPage()" id="radio-1w" value="week" type="radio" name="period-selection" checked>Last Week</label>
             {% endif %}
         </div>
     </div>

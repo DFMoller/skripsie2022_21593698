@@ -2,12 +2,12 @@ from enum import auto
 from sqlalchemy import false
 from . import db, generate_api_key
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from .models import Client, Usage, Peak
+from .models import Client, Data
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
 import pandas as pd
 import pygal, datetime
-from .plotting import prepare_usage_data,prepare_peak_data
+from .plotting import prepare_chart_data
 from enum import Enum
 
 views = Blueprint('views', __name__) # don't have to call it the file name
@@ -21,25 +21,20 @@ class Period(Enum):
 @login_required
 def home():
 
-    hours = 0
-    bars = 0
+    data_entries = Data.query.filter_by(client_id=current_user.id)
+
+    key = ""
     if request.method == "GET":
-        hours = 24
+        key = "24h"
     elif request.method == "POST":
-        hours = int(request.form.get("period-selection"))
+        key = request.form.get("period-selection")
 
-    if hours == 24: bars = 48
-    elif hours == 72: bars = 24
-    elif hours == 168: bars = 7
+    hours = 0
+    if key == "24h": hours = 24
+    elif key == "72h": hours = 72
+    elif key == "week": hours = 168
 
-    
-    usage_entries = Usage.query.filter_by(client_id=current_user.id)
-    peak_entries = Peak.query.filter_by(client_id=current_user.id)
-
-    prepare_usage_data(usage_entries, hours, bars)
-
-    usage_values, xlabels = prepare_usage_data(usage_entries, hours, bars)
-    peak_values= prepare_peak_data(peak_entries, hours, bars)
+    usage_values, peak_values, xlabels = prepare_chart_data(data_entries, key)
 
     today = str(datetime.datetime.today().date())
     
