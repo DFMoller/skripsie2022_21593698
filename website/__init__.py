@@ -85,10 +85,14 @@ def startRestfulAPI(app, Data):
             args = post_args.parse_args()
             feedback = {}
 
-            print(f'USAGE:\n\tdatetime: {args["datetime"]}\n\tusage: {str(args["usage"])}\n\tAPI_KEY: {args["api_key"]}')
+            print(f'USAGE:\n\tdatetime: {args["datetime"]}\n\tusage: {str(args["usage"])}\n\tpeak: {str(args["peak"])}\n\tAPI_KEY: {args["api_key"]}')
 
             try:
                 decoded = jwt.decode(args['api_key'], app.config['SECRET_KEY'], algorithms=["HS256"])
+                result = Data.query.filter_by(client_id=decoded['id'], datetime=args['datetime']).first()
+                if result:
+                    feedback["message"] = "Datapoint already exists for that timestamp"
+                    return feedback, 409
                 new_data = Data(datetime=args['datetime'], usage=args['usage'], peak=args['peak'], client_id=decoded['id'])
                 db.session.add(new_data)
                 db.session.commit()
@@ -97,32 +101,9 @@ def startRestfulAPI(app, Data):
                 feedback["message"] = "Invalid API Key"
                 return feedback, 401
 
-            return feedback
-    
-    # class postPeak(Resource):
-
-    #     # @marshal_with(peak_fields)
-    #     def post(self):
-
-    #         args = post_peak_args.parse_args()
-    #         feedback = {}
-
-    #         print(f'PEAK:\n\tdatetime: {args["datetime"]}\n\tpeak: {str(args["peak"])}\n\tAPI_KEY: {args["api_key"]}')
-
-    #         try:
-    #             decoded = jwt.decode(args['api_key'], app.config['SECRET_KEY'], algorithms=["HS256"])
-    #             new_peak = Peak(datetime=args['datetime'], peak=args['peak'], client_id=decoded['id'])
-    #             db.session.add(new_peak)
-    #             db.session.commit()
-    #             feedback["message"] = "Peak data received and saved"
-    #         except InvalidSignatureError:
-    #             feedback["message"] = "Invalid API Key"
-    #             return feedback, 401
-
-    #         return feedback
+            return feedback, 201
     
     api.add_resource(postData, "/postData")
-    # api.add_resource(postPeak, "/postPeak")
 
 def generate_api_key(id, email):
     new_key = jwt.encode({"id": id, "email": email}, app.config['SECRET_KEY'], algorithm="HS256")
