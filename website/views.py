@@ -6,8 +6,8 @@ from .models import Client, Data
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
 import pandas as pd
-import pygal, datetime
-from .plotting import prepare_chart_data
+import datetime
+from .plotting import prepare_chart_data, get_daily_average_data
 from enum import Enum
 
 views = Blueprint('views', __name__) # don't have to call it the file name
@@ -39,6 +39,14 @@ def home():
     today = str(datetime.datetime.today().date())
     
     return render_template("home.html", user=current_user, xlabels=xlabels, usage_values=usage_values, peak_values=peak_values, date=today, hours=hours)
+
+@views.route('/analysis', methods=['GET'])
+@login_required
+def analysis():
+    datapoints = Data.query.filter_by(client_id=current_user.id)
+    daily_average_data = get_daily_average_data(datapoints)
+    # print('Daily Average Data', daily_average_data)
+    return render_template("analysis.html", usage_values=daily_average_data['usage'], peak_values=daily_average_data['peak'], xlabels=daily_average_data['xlabels'])
 
 @views.route('/signup', methods=["GET", "POST"])
 def signup():
