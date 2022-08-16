@@ -7,8 +7,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
 import pandas as pd
 import datetime
-from .plotting import prepare_chart_data, get_daily_average_data
+from .plotting import prepare_chart_data
 from enum import Enum
+from .quotation import Quotation
 
 views = Blueprint('views', __name__) # don't have to call it the file name
 
@@ -44,9 +45,9 @@ def home():
 @login_required
 def analysis():
     datapoints = Data.query.filter_by(client_id=current_user.id)
-    daily_average_data = get_daily_average_data(datapoints)
-    # print('Daily Average Data', daily_average_data)
-    return render_template("analysis.html", usage_values=daily_average_data['usage'], peak_values=daily_average_data['peak'], xlabels=daily_average_data['xlabels'])
+    # daily_average_data = get_daily_average_data(datapoints)
+    Quote1 = Quotation(batV=24, powerHours=8, chargingHours=5, datapoints=datapoints)
+    return render_template("analysis.html", quotation_obj=Quote1, xlabels=Quote1.aggregated_data['xlabels'], usage_values=Quote1.aggregated_data['usage'], peak_values=Quote1.aggregated_data['peak'])
 
 @views.route('/signup', methods=["GET", "POST"])
 def signup():
