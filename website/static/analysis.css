@@ -1,14 +1,48 @@
-.chart-box{
+.analysis-chart-wrapper{
     width: 100%;
+    height: 50vh;
+    margin: 2rem 0;
 }
-.analysis-main-box{
+.quote-box{
+    display: flex;
+    flex-direction: row;
+    margin-top: 1rem;
+    width: 100%;
+    justify-content: center;
+    align-items: top;
+}
+.quote-form-box{
+    width: 50%;
     display: flex;
     flex-direction: column;
-    width: 100%;
-    height: 100%;
-    justify-content: center;
     align-items: center;
+    background-color: lightgrey;
+    margin: 1rem;
+    padding: 1rem;
+    height: min-content;
 }
-.quote-results{
-    margin-top: 4rem;
+.quote-results-box{
+    width: 50%;
+    margin: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: lightgrey;
+    padding: 1rem;
 }
+.quote-form{
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    width: 70%;
+}
+.pwrHours-radio, .chargeHours-radio{
+    margin: 0 0.5rem 0 1rem;
+}
+.quotation-submit{
+    width: min-width;
+    padding: 0.5rem 2rem;
+    margin: 1rem;
+    align-self: center;
+}
+

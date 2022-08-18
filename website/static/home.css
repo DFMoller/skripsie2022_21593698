@@ -1,13 +1,9 @@
-.home-block{
+.home-chart-wrapper{
     display: flex;
     width: 100%;
-    height: 100%;
+    height: 80vh;
     justify-content: center;
     /* align-items: top; */
-}
-.chart-box{
-    width: 100%;
-    height: 80vh;
 }
 .radios-tab{
     display: flex;

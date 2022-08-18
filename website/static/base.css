@@ -90,6 +90,24 @@ main{
 th, td{
     padding: 0.5rem;
 }
+.content-heading{
+    margin: 2rem 0;
+}
+.intro-text{
+    width: 80%;
+    margin: 1rem 0;
+    text-align: center;
+}
+.chart-box{ 
+    width: 100%;
+    height: 100%;
+}
+.body-heading{
+    margin: 1rem 0 0.5rem 0;
+}
+.body-subheading{
+    margin: 1rem 0 0.5rem 0;
+}
 
 @media screen and (max-width: 1000px){
     nav{

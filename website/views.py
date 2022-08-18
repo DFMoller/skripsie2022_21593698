@@ -41,13 +41,17 @@ def home():
     
     return render_template("home.html", user=current_user, xlabels=xlabels, usage_values=usage_values, peak_values=peak_values, date=today, hours=hours)
 
-@views.route('/analysis', methods=['GET'])
+@views.route('/analysis', methods=['GET', 'POST'])
 @login_required
 def analysis():
-    datapoints = Data.query.filter_by(client_id=current_user.id)
-    # daily_average_data = get_daily_average_data(datapoints)
-    Quote1 = Quotation(batV=24, powerHours=8, chargingHours=5, datapoints=datapoints)
-    return render_template("analysis.html", quotation_obj=Quote1, xlabels=Quote1.aggregated_data['xlabels'], usage_values=Quote1.aggregated_data['usage'], peak_values=Quote1.aggregated_data['peak'])
+    if request.method == 'POST':
+        datapoints = Data.query.filter_by(client_id=current_user.id)
+        Quote1 = Quotation(batV=24, powerHours=8, chargingHours=5, datapoints=datapoints, usage_mode='median', peak_mode='median')
+        return render_template("analysis.html", quotation_obj=Quote1, xlabels=Quote1.aggregated_data['xlabels'], usage_values=Quote1.aggregated_data['usage'], peak_values=Quote1.aggregated_data['peak'], quote_results=True)
+    else:
+        datapoints = Data.query.filter_by(client_id=current_user.id)
+        Quote1 = Quotation(batV=24, powerHours=8, chargingHours=5, datapoints=datapoints, usage_mode='median', peak_mode='median')
+        return render_template("analysis.html", quotation_obj=Quote1, xlabels=Quote1.aggregated_data['xlabels'], usage_values=Quote1.aggregated_data['usage'], peak_values=Quote1.aggregated_data['peak'], quote_results=False)
 
 @views.route('/signup', methods=["GET", "POST"])
 def signup():

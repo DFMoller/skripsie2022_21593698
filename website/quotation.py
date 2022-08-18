@@ -13,14 +13,14 @@ class Quotation:
         'usage': ['median', 'maximum'],
         'peak': ['median', 'maximum']
     }
-    def __init__(self, batV, powerHours, chargingHours, datapoints):
+    def __init__(self, batV, powerHours, chargingHours, datapoints, usage_mode, peak_mode):
         self.battery_voltage = batV
         self.power_hours = powerHours
         self.charging_hours = chargingHours
         self.mode = {}
         self.aggregated_data = {}
         self.minimum_parameters = {}
-        self.mode_set('maximum', 'maximum')
+        self.mode_set(usage_mode=usage_mode, peak_mode=peak_mode)
         self.aggregate_data(datapoints)
         self.generate_minimum_parameters()
         self.check_ready_state()
@@ -100,7 +100,6 @@ class Quotation:
         self.minimum_parameters['Battery']['Wh'] = self.power_hours * self.minimum_parameters['Power']['Usage'] * 2
         # Inverter Parameters
         self.minimum_parameters['Inverter']['W'] = self.minimum_parameters['Power']['Peak']
-        self.minimum_parameters['Inverter']['VAC'] = 230
         # PV Panel Parameters
         self.minimum_parameters['PV']['W'] = self.minimum_parameters['Battery']['Wh'] / self.minimum_parameters['Power']['ChargeHrs']
         # Solar Charger Parameters
