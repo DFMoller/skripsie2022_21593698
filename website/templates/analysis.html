@@ -24,9 +24,11 @@
 <p class="intro-text">The goal of this quotation tool is to give you, the homeowner, an estimation of what it will cost to install a solar system to power your home during load shedding. The tool uses the conservative data shown in the chart above to make its calculation. Please use the form below to generate your quotation.</p>
 <div class="quote-box">
     <div class="quote-form-box">
-        <h2 class="body-heading">Quotation Options</h2>
+        <h1 class="body-heading">Quotation Options</h1>
         <p class="intro-text">Use this form to generate a personalized quotation:</p>
-        <form class="quote-form" method="POST" action="{{ url_for('views.analysis') }}">
+        <form id="quote-form" class="quote-form" method="POST" action="{{ url_for('views.analysis') }}">
+            <input type="hidden" name="usage_values" value="{{ usage_values }}">
+            <input type="hidden" name="peak_values" value="{{ peak_values }}">
             <h4 class="body-heading">For how many hours at a time do you want your solar system to power your home?</h4>
             <label for="pwrHours2"><input class="pwrHours-radio" type="radio" id="pwrHours2" name="pwrHours" value="2" required>2 Hours</label>
             <label for="pwrHours3"><input class="pwrHours-radio" type="radio" id="pwrHours3" name="pwrHours" value="3">3 Hours</label>
@@ -40,95 +42,82 @@
             <input class="quotation-submit" type="submit" value="Generate Quotation">
         </form>
     </div>
-    <div class="quote-results-box">
-        {% if quote_results %}
-            <h2 class="body-heading">Your Quotation</h2>
-            {% for element in quotation_obj.minimum_parameters %}
-                <h3 class="body-subheading">{{ element }}</h3>
-                {% for param in quotation_obj.minimum_parameters[element] %}
-                <p>{{ param }}: {{ quotation_obj.minimum_parameters[element][param] }}</p>
-                {% endfor %}
-            {% endfor %}
-        {% endif %}
-    </div>
+    <div class='quote-results-box'></div>
 </div>
 {% endblock %}
 
 {% block javascript %}
+<script src="../static/analysis.js"></script>
 <script>
 
-    function reloadPage(){
+    document.addEventListener("DOMContentLoaded", function() {
 
-        var periodForm = document.getElementById("period-form");
-        periodForm.submit();
-
-    }
-
-    const labels = {{ xlabels | safe }};
-    
-    const data = {
-        labels: labels,
-        datasets: [{
-            label: "Usage (Wh)",
-            backgroundColor: 'rgb(0, 83, 119)',
-            borderColor: 'rgb(255, 99, 132)',
-            data: {{ usage_values | safe }},
-            yAxisID: 'y',
-        },
-        {
-            label: "Peak (W)",
-            backgroundColor: 'rgb(6, 167, 125)',
-            borderColor: 'rgb(255, 99, 120)',
-            data: {{ peak_values | safe }},
-            yAxisID: 'y1',
-        }]
-    };
-
-    const config = {
-        type: 'bar',
-        data: data,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top'
-                },
-                title: {
-                    display: true,
-                    text: 'Worst-Case Scenario Power Consumption',
-                    font: {
-                        size: 20,
-                        family: "Poppins"
-                    }
-
-                }
+        const labels = {{ xlabels | safe }};
+        
+        const data = {
+            labels: labels,
+            datasets: [{
+                label: "Usage (Wh)",
+                backgroundColor: 'rgb(0, 83, 119)',
+                borderColor: 'rgb(255, 99, 132)',
+                data: {{ usage_values | safe }},
+                yAxisID: 'y',
             },
-            scales:{
-                y: {
-                    type: 'linear',
-                    title: "y",
-                    display: true,
-                    position: 'left',
-                },
-                y1: {
-                    type: 'linear',
-                    title: 'y1',
-                    display: true,
-                    position: 'right',
+            {
+                label: "Peak (W)",
+                backgroundColor: 'rgb(6, 167, 125)',
+                borderColor: 'rgb(255, 99, 120)',
+                data: {{ peak_values | safe }},
+                yAxisID: 'y1',
+            }]
+        };
 
-                    // grid line settings
-                    grid: {
-                    drawOnChartArea: false, // only want the grid lines for one axis to show up
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
                     },
+                    title: {
+                        display: true,
+                        text: 'Worst-Case Scenario Power Consumption',
+                        font: {
+                            size: 20,
+                            family: "Poppins"
+                        }
+
+                    }
                 },
-            } 
-        }
-    };
+                scales:{
+                    y: {
+                        type: 'linear',
+                        title: "y",
+                        display: true,
+                        position: 'left',
+                    },
+                    y1: {
+                        type: 'linear',
+                        title: 'y1',
+                        display: true,
+                        position: 'right',
 
-    var ctx = document.getElementById("myChart").getContext("2d");
+                        // grid line settings
+                        grid: {
+                        drawOnChartArea: false, // only want the grid lines for one axis to show up
+                        },
+                    },
+                } 
+            }
+        };
 
-    var barchart = new Chart(ctx, config);
+        var ctx = document.getElementById("myChart").getContext("2d");
+
+        var barchart = new Chart(ctx, config);
+    });
 
 </script>
 {% endblock %}
