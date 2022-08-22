@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     }
                     new_html += "</div>"
                 }
-                results_box.innerHTML += new_html;
+                results_box.innerHTML = new_html;
             }
         }
         

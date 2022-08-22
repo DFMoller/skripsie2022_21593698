@@ -52,7 +52,7 @@ def analysis():
         }
         pwrHours = int(request.form.get('pwrHours'))
         chargeHours = int(request.form.get('chargeHours'))
-        Quote1 = Quotation(batV=24, powerHours=pwrHours, chargingHours=chargeHours, usage_mode='median', peak_mode='median', aggregated_data=aggregated_data)
+        Quote1 = Quotation(batV=48, powerHours=pwrHours, chargingHours=chargeHours, usage_mode='median', peak_mode='median', aggregated_data=aggregated_data)
         return json.dumps(Quote1.minimum_parameters)
     else:
         datapoints = Data.query.filter_by(client_id=current_user.id)

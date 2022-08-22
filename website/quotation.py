@@ -1,5 +1,6 @@
 import numpy as np
-import datetime
+import datetime, csv
+import pandas as pd
 
 class QuotationStateError(Exception):
     def __init__(self, message):
@@ -51,7 +52,7 @@ class Quotation:
                 'params': {
                     'usage': {
                         'val': 0,
-                        'disp_name': 'Accumulated Usage',
+                        'disp_name': 'Median usage per 30 min',
                         'unit': 'Wh',
                         'description': 'Used to size your battery system'
                     },
@@ -159,6 +160,53 @@ class Quotation:
         self.minimum_parameters['equipment']['items']['PV']['specs']['Power Rating']['val'] = round(self.minimum_parameters['equipment']['items']['battery']['specs']['Capacity']['val'] / self.minimum_parameters['power']['params']['chargeHrs']['val'], 0)
         # Solar Charger Parameters
         self.minimum_parameters['equipment']['items']['SC']['specs']['Current Rating']['val'] = round(self.minimum_parameters['equipment']['items']['PV']['specs']['Power Rating']['val'] / self.battery_voltage, 0)
+
+    def generate_cost_estimation(self):
+        self.cost_estimation = {
+            'description': 'This is a description for the cost estimation section',
+            'items': {
+                'battery': {
+                'disp_name': 'Battery',
+                'description': 'This is a description for the Battery\'s cost estimation',
+                'cost': 0
+            },
+            'inverter': {
+                'disp_name': 'Hybrid Inverter',
+                'description': 'This is a description for the Hybrid Inverter\'s cost estimation',
+                'cost': 0
+            },
+            'PV': {
+                'disp_name': 'PV Solar Panels',
+                'description': 'This is a description for the PV Solar Panels\' cost estimation',
+                'cost': 0
+            }}
+        }
+        bat_df = pd.read_csv("solar_data/battery_export.csv", delimiter=';', encoding='cp1252')
+        inv_df = pd.read_csv("solar_data/inverter_export.csv", delimiter=';', encoding='cp1252')
+        pv_df = pd.read_csv("solar_data/panels_export.csv", delimiter=';', encoding='cp1252')
+        battery_capacity = self.minimum_parameters['equipment']['items']['battery']['specs']['Capacity']['val']
+        inverter_rating = self.minimum_parameters['equipment']['items']['inverter']['specs']['Power Rating']['val']
+        pv_rating = self.minimum_parameters['equipment']['items']['PV']['specs']['Power Rating']['val']
+        self.cost_estimation['items']['battery']['cost'] = self.calculate_cost_single_battery(bat_df, battery_capacity)
+        self.cost_estimation['items']['inverter']['cost'] = self.calculate_cost_single_inverter(inv_df, inverter_rating)
+
+    def calculate_cost_single_battery(bat_df, required_capacity):
+        potential_matches = []
+        for index, row in bat_df.iterrows():
+            if row['Max Discharge'] > required_capacity:
+                potential_matches.append(row)
+        match = min(potential_matches, key=lambda x:x['Max Discharge'])
+        cost = match['Cost']
+        return cost
+
+    def calculate_cost_single_inverter(inv_df, inv_rating):
+        potential_matches = []
+        for index, row in inv_df.iterrows():
+            if row['Hybrid Inverter Power'] > inv_rating:
+                potential_matches.append(row)
+        match = min(potential_matches, key=lambda x:x['Max Discharge'])
+        cost = match['Cost']
+        return cost
 
     def get_minimum_parameters(self):
         return self.minimum_parameters
