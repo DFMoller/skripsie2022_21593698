@@ -36,7 +36,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.log("AJAX Complete!");
                 var json_obj = JSON.parse(request.responseText);
                 var param_obj = json_obj['power']
-                var equip_obj = json_obj['equipment']                
+                var equip_obj = json_obj['equipment']
+                var quote_obj = json_obj['quotation']              
                 results_box = document.querySelector('.quote-results-box')
                 results_box.style.backgroundColor = "#f1f1f1";
                 results_box.style.borderRadius = "1rem";
@@ -55,7 +56,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 new_html += "<h2 class='body-heading'>" + equip_obj['disp_name'] + "</h2>"
                 new_html += "<p>" + equip_obj['description'] + "</p>"
                 var items = equip_obj['items']
-                // new_html = ""
+                // Add Equipment Specification (Requirements)
                 for (var item of Object.keys(items)) {
                     // item = "Battery", equip_obj[item] = dict(description, disp_name, specs)
                     new_html += "<div class='param-box'>"
@@ -65,6 +66,29 @@ document.addEventListener("DOMContentLoaded", function() {
                     for (var spec of Object.keys(specs)) {
                         new_html += "<p>" + spec + ": " + specs[spec]['val'] + " " + specs[spec]['unit'] + "</p>"
                     }
+                    new_html += "</div>"
+                }
+                // Add Quotation
+                new_html += "<h2 class='body-heading'>" + quote_obj['disp_name'] + "</h2>"
+                new_html += "<p>" + quote_obj['description'] + "</p>"
+                var quote_items = quote_obj['items']
+                console.log(quote_obj)
+                for (var item of Object.keys(quote_items)) {
+                    new_html += "<div class='param-box'>"
+                    new_html += "<h3 class='body-subheading'>" + quote_items[item]['disp_name'] + "</h3>"
+                    new_html += "<p class='param-intro-text'>" + quote_items[item]['description'] + "</p>"
+                    var options = quote_items[item]['options']
+                    console.log(item)
+                    options.forEach(element => {
+                        // if (item == 'battery')
+                        // console.log(element)
+                        new_html += "<h4 class='body-subheading'>" + element['disp_name'] + "</h4>"
+                        for (var key of Object.keys(element['details'])) {
+                            // console.log(" "+key)
+                            
+                            new_html += "<p>" + key + ": " + element['details'][key] + "</p>"
+                        }
+                    });
                     new_html += "</div>"
                 }
                 results_box.innerHTML = new_html;

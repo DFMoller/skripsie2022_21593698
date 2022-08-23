@@ -163,6 +163,7 @@ class Quotation:
 
     def generate_cost_estimation(self):
         cost_estimation = {
+            'disp_name': 'Cost Estimation',
             'description': 'This is a description for the cost estimation section',
             'items': {
                 'battery': {
@@ -224,6 +225,7 @@ class Quotation:
             best_matches['3'] = min(three_unit_matches, key=lambda x:x['Max Discharge'])
         # print('Length of best_matches:', len(best_matches))
         results = []
+        count = 0
         for key in best_matches:
             # print('Number of Units:', key)
             # print('Capacity per unit:', best_matches[key]['Max Discharge'])
@@ -232,12 +234,17 @@ class Quotation:
             # print('Total Cost:', best_matches[key]['Cost']*int(key))
             # print()
             results.append({
-                'Number of Battery Units': key,
-                'Unit Capacity': best_matches[key]['Max Discharge'],
-                'Unit Cost': best_matches[key]['Cost'],
-                'Total Capacity': best_matches[key]['Max Discharge']*int(key),
-                'Total Cost': best_matches[key]['Cost']*int(key)
+                'disp_name': 'Battery Option {}'.format(count+1),
+                'description': 'This is a description',
+                'details': {
+                    'Number of Battery Units': key,
+                    'Unit Capacity': best_matches[key]['Max Discharge'],
+                    'Unit Cost': best_matches[key]['Cost'],
+                    'Total Capacity': best_matches[key]['Max Discharge']*int(key),
+                    'Total Cost': best_matches[key]['Cost']*int(key)
+                }
             })
+            count += 1
         return results
 
     def calculate_inverter_cost(self, inv_df, inv_rating):
@@ -259,14 +266,20 @@ class Quotation:
         if len(three_unit_matches) > 0:
             best_matches['3'] = min(three_unit_matches, key=lambda x:x['Hybrid Inverter Power'])
         results = []
+        count = 0
         for key in best_matches:
             results.append({
-                'Number of Hybrid Inverter Units': key,
-                'Unit Capacity': best_matches[key]['Hybrid Inverter Power'],
-                'Unit Cost': best_matches[key]['Cost'],
-                'Total Capacity': best_matches[key]['Hybrid Inverter Power']*int(key),
-                'Total Cost': best_matches[key]['Cost']*int(key)
+                'disp_name': 'Inverter Option {}'.format(count+1),
+                'description': 'This is a description',
+                'details': {
+                    'Number of Hybrid Inverter Units': key,
+                    'Unit Capacity': best_matches[key]['Hybrid Inverter Power'],
+                    'Unit Cost': best_matches[key]['Cost'],
+                    'Total Capacity': best_matches[key]['Hybrid Inverter Power']*int(key),
+                    'Total Cost': best_matches[key]['Cost']*int(key)
+                }
             })
+            count += 1
         return results
 
     def calculate_panels_cost(self, pv_df, power_rating):
@@ -285,18 +298,26 @@ class Quotation:
         num_panels_value = math.ceil(power_rating / best_value_row['PV Power'].item())
         num_panels_power = math.ceil(power_rating / max_power_row['PV Power'].item())
         results = [{
-            'Number of PV Panels Required': num_panels_value,
-            'Power per Panel': best_value_row['PV Power'].item(),
-            'Cost Per Panel': best_value_row['Cost'].item(),
-            'Total Power': num_panels_value * best_value_row['PV Power'].item(),
-            'Total Cost': num_panels_value * best_value_row['Cost'].item()
+            'disp_name': 'PV Panels Option {}'.format(1),
+            'description': 'This is a description for option 1',
+            'details': {
+                'Number of PV Panels Required': num_panels_value,
+                'Power per Panel': best_value_row['PV Power'].item(),
+                'Cost Per Panel': best_value_row['Cost'].item(),
+                'Total Power': num_panels_value * best_value_row['PV Power'].item(),
+                'Total Cost': num_panels_value * best_value_row['Cost'].item()
+            }
         },
         {
-           'Number of PV Panels Required': num_panels_power,
-            'Power per Panel': max_power_row['PV Power'].item(),
-            'Cost Per Panel': max_power_row['Cost'].item(),
-            'Total Power': num_panels_power * max_power_row['PV Power'].item(),
-            'Total Cost': num_panels_power * max_power_row['Cost'].item()
+            'disp_name': 'PV Panels Option {}'.format(2),
+            'description': 'This is a description for option 2',
+            'details': {
+                'Number of PV Panels Required': num_panels_power,
+                'Power per Panel': max_power_row['PV Power'].item(),
+                'Cost Per Panel': max_power_row['Cost'].item(),
+                'Total Power': num_panels_power * max_power_row['PV Power'].item(),
+                'Total Cost': num_panels_power * max_power_row['Cost'].item()
+            }
         }]
         return results
 
