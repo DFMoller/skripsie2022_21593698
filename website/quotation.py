@@ -1,5 +1,5 @@
 import numpy as np
-import datetime, csv
+import math
 import pandas as pd
 
 class QuotationStateError(Exception):
@@ -20,10 +20,10 @@ class Quotation:
         self.charging_hours = chargingHours
         self.mode = {}
         self.aggregated_data = aggregated_data
-        self.minimum_parameters = {}
+        self.quotation_results = {}
         self.mode_set(usage_mode=usage_mode, peak_mode=peak_mode)
-        # self.aggregate_data(datapoints)
-        self.generate_minimum_parameters()
+        self.generate_equipment_results()
+        self.generate_cost_estimation()
         self.check_ready_state()
     def check_ready_state(self):
         for category in Quotation.mode_options.keys():
@@ -31,7 +31,7 @@ class Quotation:
                 raise QuotationStateError('Quotation mode not set!')
         # if len(self.aggregated_data) == 0:
         #     raise QuotationStateError('Data not Aggregated for Quotation!')
-        if len(self.minimum_parameters) == 0:
+        if len(self.quotation_results) == 0:
             raise QuotationStateError('Minimum parameters required for Quotation not calculated!')
     def mode_set(self, usage_mode, peak_mode):
         if usage_mode in Quotation.mode_options['usage']:
@@ -42,9 +42,9 @@ class Quotation:
             self.mode['peak'] = peak_mode
         else:
             raise KeyError('mode_set: peak mode "{}" does not exist'.format(peak_mode))
-    def generate_minimum_parameters(self):
+    def generate_equipment_results(self):
         # Define Data Structure
-        self.minimum_parameters = {
+        self.quotation_results = {
             'description': 'This is a description for the quotation results',
             'power': {
                 'description': 'Input Parameter Description',
@@ -145,74 +145,158 @@ class Quotation:
         }
         # Power Requirements
         if self.mode['usage'] == 'median':
-            self.minimum_parameters['power']['params']['usage']['val'] = np.median(self.aggregated_data['usage'])
+            self.quotation_results['power']['params']['usage']['val'] = np.median(self.aggregated_data['usage'])
         elif self.mode['usage'] == 'maximum':
-            self.minimum_parameters['power']['params']['usage']['val'] = np.max(self.aggregated_data['usage'])
+            self.quotation_results['power']['params']['usage']['val'] = np.max(self.aggregated_data['usage'])
         if self.mode['peak'] == 'median':
-            self.minimum_parameters['power']['params']['peak']['val'] = np.median(self.aggregated_data['peak'])
+            self.quotation_results['power']['params']['peak']['val'] = np.median(self.aggregated_data['peak'])
         elif self.mode['peak'] == 'maximum':
-            self.minimum_parameters['power']['params']['peak']['val'] = np.max(self.aggregated_data['peak'])
+            self.quotation_results['power']['params']['peak']['val'] = np.max(self.aggregated_data['peak'])
         # Battery Parameters
-        self.minimum_parameters['equipment']['items']['battery']['specs']['Capacity']['val'] = self.power_hours * self.minimum_parameters['power']['params']['usage']['val'] * 2
+        self.quotation_results['equipment']['items']['battery']['specs']['Capacity']['val'] = self.power_hours * self.quotation_results['power']['params']['usage']['val'] * 2
         # Inverter Parameters
-        self.minimum_parameters['equipment']['items']['inverter']['specs']['Power Rating']['val'] = self.minimum_parameters['power']['params']['peak']['val']
+        self.quotation_results['equipment']['items']['inverter']['specs']['Power Rating']['val'] = self.quotation_results['power']['params']['peak']['val']
         # PV Panel Parameters
-        self.minimum_parameters['equipment']['items']['PV']['specs']['Power Rating']['val'] = round(self.minimum_parameters['equipment']['items']['battery']['specs']['Capacity']['val'] / self.minimum_parameters['power']['params']['chargeHrs']['val'], 0)
+        self.quotation_results['equipment']['items']['PV']['specs']['Power Rating']['val'] = round(self.quotation_results['equipment']['items']['battery']['specs']['Capacity']['val'] / self.quotation_results['power']['params']['chargeHrs']['val'], 0)
         # Solar Charger Parameters
-        self.minimum_parameters['equipment']['items']['SC']['specs']['Current Rating']['val'] = round(self.minimum_parameters['equipment']['items']['PV']['specs']['Power Rating']['val'] / self.battery_voltage, 0)
+        self.quotation_results['equipment']['items']['SC']['specs']['Current Rating']['val'] = round(self.quotation_results['equipment']['items']['PV']['specs']['Power Rating']['val'] / self.battery_voltage, 0)
 
     def generate_cost_estimation(self):
-        self.cost_estimation = {
+        cost_estimation = {
             'description': 'This is a description for the cost estimation section',
             'items': {
                 'battery': {
-                'disp_name': 'Battery',
-                'description': 'This is a description for the Battery\'s cost estimation',
-                'cost': 0
-            },
-            'inverter': {
-                'disp_name': 'Hybrid Inverter',
-                'description': 'This is a description for the Hybrid Inverter\'s cost estimation',
-                'cost': 0
-            },
-            'PV': {
-                'disp_name': 'PV Solar Panels',
-                'description': 'This is a description for the PV Solar Panels\' cost estimation',
-                'cost': 0
-            }}
+                    'disp_name': 'Battery',
+                    'description': 'This is a description for the Battery\'s cost estimation',
+                    'options': []
+                },
+                'inverter': {
+                    'disp_name': 'Hybrid Inverter',
+                    'description': 'This is a description for the Hybrid Inverter\'s cost estimation',
+                    'options': []
+                },
+                'PV': {
+                    'disp_name': 'PV Solar Panels',
+                    'description': 'This is a description for the PV Solar Panels\' cost estimation',
+                    'options': []
+                }
+            }
         }
+        # Read csv into DataFrame and convert stings to floats
         bat_df = pd.read_csv("solar_data/battery_export.csv", delimiter=';', encoding='cp1252')
         inv_df = pd.read_csv("solar_data/inverter_export.csv", delimiter=';', encoding='cp1252')
         pv_df = pd.read_csv("solar_data/panels_export.csv", delimiter=';', encoding='cp1252')
-        battery_capacity = self.minimum_parameters['equipment']['items']['battery']['specs']['Capacity']['val']
-        inverter_rating = self.minimum_parameters['equipment']['items']['inverter']['specs']['Power Rating']['val']
-        pv_rating = self.minimum_parameters['equipment']['items']['PV']['specs']['Power Rating']['val']
-        self.cost_estimation['items']['battery']['cost'] = self.calculate_cost_single_battery(bat_df, battery_capacity)
-        self.cost_estimation['items']['inverter']['cost'] = self.calculate_cost_single_inverter(inv_df, inverter_rating)
+        # Convert strings to floats
+        bat_df['Max Discharge'] = bat_df['Max Discharge'].str.replace(',', '.').astype(float)
+        bat_df['Battery Capacity'] = bat_df['Battery Capacity'].str.replace(',', '.').astype(float)
+        # Scale values to W and Wh
+        bat_df['Battery Capacity'] = bat_df['Battery Capacity']*1000
+        bat_df['Max Discharge'] = bat_df['Max Discharge']*1000
+        inv_df['Hybrid Inverter Power'] = inv_df['Hybrid Inverter Power']*1000
+        # Fetch minimum required parameters
+        battery_capacity = self.quotation_results['equipment']['items']['battery']['specs']['Capacity']['val']
+        inverter_rating = self.quotation_results['equipment']['items']['inverter']['specs']['Power Rating']['val']
+        pv_rating = self.quotation_results['equipment']['items']['PV']['specs']['Power Rating']['val']
+        # Calculate Cost Estimate
+        cost_estimation['items']['battery']['options'] = self.calculate_battery_cost(bat_df, battery_capacity)
+        cost_estimation['items']['inverter']['options'] = self.calculate_inverter_cost(inv_df, inverter_rating)
+        cost_estimation['items']['PV']['options'] = self.calculate_panels_cost(pv_df, pv_rating)
+        # Add Cost Estimation to Quotation Results
+        self.quotation_results['quotation'] = cost_estimation
 
-    def calculate_cost_single_battery(bat_df, required_capacity):
-        potential_matches = []
+    def calculate_battery_cost(self, bat_df, required_capacity):
+        one_unit_matches = []
+        two_unit_matches = []
+        three_unit_matches = []
         for index, row in bat_df.iterrows():
             if row['Max Discharge'] > required_capacity:
-                potential_matches.append(row)
-        match = min(potential_matches, key=lambda x:x['Max Discharge'])
-        cost = match['Cost']
-        return cost
+                one_unit_matches.append(row)
+            if row['Max Discharge'] * 2 > required_capacity:
+                two_unit_matches.append(row)
+            if row['Max Discharge'] * 3 > required_capacity:
+                three_unit_matches.append(row)
+        best_matches = {}
+        if len(one_unit_matches) > 0:
+            best_matches['1'] = min(one_unit_matches, key=lambda x:x['Max Discharge'])
+        if len(two_unit_matches) > 0:
+            best_matches['2'] = min(two_unit_matches, key=lambda x:x['Max Discharge'])
+        if len(three_unit_matches) > 0:
+            best_matches['3'] = min(three_unit_matches, key=lambda x:x['Max Discharge'])
+        # print('Length of best_matches:', len(best_matches))
+        results = []
+        for key in best_matches:
+            # print('Number of Units:', key)
+            # print('Capacity per unit:', best_matches[key]['Max Discharge'])
+            # print('Total Capacity:', best_matches[key]['Max Discharge']*int(key))
+            # print('Cost per unit:', best_matches[key]['Cost'])
+            # print('Total Cost:', best_matches[key]['Cost']*int(key))
+            # print()
+            results.append({
+                'Number of Battery Units': key,
+                'Unit Capacity': best_matches[key]['Max Discharge'],
+                'Unit Cost': best_matches[key]['Cost'],
+                'Total Capacity': best_matches[key]['Max Discharge']*int(key),
+                'Total Cost': best_matches[key]['Cost']*int(key)
+            })
+        return results
 
-    def calculate_cost_single_inverter(inv_df, inv_rating):
-        potential_matches = []
+    def calculate_inverter_cost(self, inv_df, inv_rating):
+        one_unit_matches = []
+        two_unit_matches = []
+        three_unit_matches = []
         for index, row in inv_df.iterrows():
             if row['Hybrid Inverter Power'] > inv_rating:
-                potential_matches.append(row)
-        match = min(potential_matches, key=lambda x:x['Max Discharge'])
-        cost = match['Cost']
-        return cost
+                one_unit_matches.append(row)
+            if row['Hybrid Inverter Power']*2 > inv_rating:
+                two_unit_matches.append(row)
+            if row['Hybrid Inverter Power']*3 > inv_rating:
+                three_unit_matches.append(row)
+        best_matches = {}
+        if len(one_unit_matches) > 0:
+            best_matches['1'] = min(one_unit_matches, key=lambda x:x['Hybrid Inverter Power'])
+        if len(two_unit_matches) > 0:
+            best_matches['2'] = min(two_unit_matches, key=lambda x:x['Hybrid Inverter Power'])
+        if len(three_unit_matches) > 0:
+            best_matches['3'] = min(three_unit_matches, key=lambda x:x['Hybrid Inverter Power'])
+        results = []
+        for key in best_matches:
+            results.append({
+                'Number of Hybrid Inverter Units': key,
+                'Unit Capacity': best_matches[key]['Hybrid Inverter Power'],
+                'Unit Cost': best_matches[key]['Cost'],
+                'Total Capacity': best_matches[key]['Hybrid Inverter Power']*int(key),
+                'Total Cost': best_matches[key]['Cost']*int(key)
+            })
+        return results
 
-    def get_minimum_parameters(self):
-        return self.minimum_parameters
-
-    def calculate_cost(self):
-        pass
-    def display_results(self):
-        pass
+    def calculate_panels_cost(self, pv_df, power_rating):
+        pv_df['PV Score'] = pv_df['Cost'] / pv_df['PV Power']
+        # Select row with lowest cost per watt (PV Score)
+        best_value_row = pv_df[pv_df['PV Score'] == pv_df['PV Score'].min()]
+        # Select row with highest power per panel
+        max_power_row = pv_df[pv_df['PV Power'] == pv_df['PV Power'].max()]
+        if len(best_value_row) > 1:
+            best_value_row = best_value_row.iloc[[0]]
+        if len(max_power_row) > 1:
+            # If there are more than one with equal power - Select row with lowest cost per watt (PV Score)
+            max_power_row = max_power_row[max_power_row['PV Score'] == max_power_row['PV Score'].min()]
+            if len(max_power_row) > 1:
+                max_power_row = max_power_row.iloc[[0]]
+        num_panels_value = math.ceil(power_rating / best_value_row['PV Power'].item())
+        num_panels_power = math.ceil(power_rating / max_power_row['PV Power'].item())
+        results = [{
+            'Number of PV Panels Required': num_panels_value,
+            'Power per Panel': best_value_row['PV Power'].item(),
+            'Cost Per Panel': best_value_row['Cost'].item(),
+            'Total Power': num_panels_value * best_value_row['PV Power'].item(),
+            'Total Cost': num_panels_value * best_value_row['Cost'].item()
+        },
+        {
+           'Number of PV Panels Required': num_panels_power,
+            'Power per Panel': max_power_row['PV Power'].item(),
+            'Cost Per Panel': max_power_row['Cost'].item(),
+            'Total Power': num_panels_power * max_power_row['PV Power'].item(),
+            'Total Cost': num_panels_power * max_power_row['Cost'].item()
+        }]
+        return results
 
