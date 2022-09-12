@@ -32,6 +32,6 @@ class Analysis:
                 if dt.time() == inc.time():
                     usage.append(dp.usage)
                     peak.append(dp.peak)
-            self.aggregated_data['usage'].append(np.max(usage))
-            self.aggregated_data['peak'].append(np.max(peak))
+            self.aggregated_data['usage'].append(int(np.median(usage)))
+            self.aggregated_data['peak'].append(int(np.median(peak)))
             self.aggregated_data['xlabels'].append(inc.strftime('%H:%M'))
