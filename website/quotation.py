@@ -45,9 +45,9 @@ class Quotation:
     def generate_equipment_results(self):
         # Define Data Structure
         self.quotation_results = {
-            'description': 'This is a description for the quotation results',
+            'description': 'Here is your generated quotation for the purchase of solar equipment to power your home during load shedding. The equipment specification shown below describes the recommended ratings for the different solar components your will need based on your load profile shown at the top of this page.',
             'power': {
-                'description': 'Input Parameter Description',
+                'description': 'This section displays the four parameters that are used to generate the quotation.',
                 'disp_name': 'Input Parameters',
                 'params': {
                     'usage': {
@@ -77,7 +77,7 @@ class Quotation:
                 }
             },
             'equipment': {
-                'description': 'Equipment Specification Description',
+                'description': 'This section lists the important parameters that you need to consider for your solar panels, batteries and inverter(s). It only lists your personal demand from each component type and these numbers will not match the ratings of components on the market exactly. These numbers are minimum requirements.',
                 'disp_name': 'Equipment Specification',
                 'items': {
                     'battery': {
@@ -126,20 +126,20 @@ class Quotation:
                             }
                         }
                     },
-                    'SC': {
-                        'description': 'Solar Charger Description',
-                        'disp_name': 'Solar Charger Specification',
-                        'specs': {
-                            'Voltage Rating': {
-                                'val': self.battery_voltage,
-                                'unit': 'V'
-                            },
-                            'Current Rating': {
-                                'val': 0,
-                                'unit': 'A'
-                            }
-                        }
-                    }
+                    # 'SC': {
+                    #     'description': 'Solar Charger Description',
+                    #     'disp_name': 'Solar Charger Specification',
+                    #     'specs': {
+                    #         'Voltage Rating': {
+                    #             'val': self.battery_voltage,
+                    #             'unit': 'V'
+                    #         },
+                    #         'Current Rating': {
+                    #             'val': 0,
+                    #             'unit': 'A'
+                    #         }
+                    #     }
+                    # }
                 }
             }
         }
@@ -159,28 +159,36 @@ class Quotation:
         # PV Panel Parameters
         self.quotation_results['equipment']['items']['PV']['specs']['Power Rating']['val'] = round(self.quotation_results['equipment']['items']['battery']['specs']['Capacity']['val'] / self.quotation_results['power']['params']['chargeHrs']['val'], 0)
         # Solar Charger Parameters
-        self.quotation_results['equipment']['items']['SC']['specs']['Current Rating']['val'] = round(self.quotation_results['equipment']['items']['PV']['specs']['Power Rating']['val'] / self.battery_voltage, 0)
+        # self.quotation_results['equipment']['items']['SC']['specs']['Current Rating']['val'] = round(self.quotation_results['equipment']['items']['PV']['specs']['Power Rating']['val'] / self.battery_voltage, 0)
 
     def generate_cost_estimation(self):
         cost_estimation = {
             'disp_name': 'Cost Estimation',
-            'description': 'This is a description for the cost estimation section',
+            'description': 'This section displays your cost estimation for each of the components you will need in your solar system. The algorithm considers multiple cases for each type of component. For example, it determines if it will be cheaper for you to purchase one big battery or two smaller batteries to be used together to meet your demand.',
             'items': {
                 'battery': {
                     'disp_name': 'Battery',
-                    'description': 'This is a description for the Battery\'s cost estimation',
+                    'description': 'Please find here your cost estimation for your solar battery pack. The parameters and cost shown are based on real market research done in 2022.',
+                    'unit': 'Wh',
                     'options': []
                 },
                 'inverter': {
                     'disp_name': 'Hybrid Inverter',
                     'description': 'This is a description for the Hybrid Inverter\'s cost estimation',
+                    'unit': 'W',
                     'options': []
                 },
                 'PV': {
                     'disp_name': 'PV Solar Panels',
                     'description': 'This is a description for the PV Solar Panels\' cost estimation',
+                    'unit': 'W',
                     'options': []
                 }
+            },
+            'totals': {
+                'bat': 0,
+                'inv': 0,
+                'pv': 0
             }
         }
         # Read csv into DataFrame and convert stings to floats
@@ -202,6 +210,11 @@ class Quotation:
         cost_estimation['items']['battery']['options'] = self.calculate_battery_cost(bat_df, battery_capacity)
         cost_estimation['items']['inverter']['options'] = self.calculate_inverter_cost(inv_df, inverter_rating)
         cost_estimation['items']['PV']['options'] = self.calculate_panels_cost(pv_df, pv_rating)
+        # Add totals
+        cost_estimation['totals']['bat'] = cost_estimation['items']['battery']['options'][0]['details']['Total Cost'][1]
+        cost_estimation['totals']['inv'] = cost_estimation['items']['inverter']['options'][0]['details']['Total Cost'][1]
+        cost_estimation['totals']['pv'] = cost_estimation['items']['PV']['options'][0]['details']['Total Cost'][1]
+        cost_estimation['totals']['total'] = cost_estimation['totals']['bat'] + cost_estimation['totals']['inv'] + cost_estimation['totals']['pv']
         # Add Cost Estimation to Quotation Results
         self.quotation_results['quotation'] = cost_estimation
 
@@ -234,17 +247,20 @@ class Quotation:
             # print('Total Cost:', best_matches[key]['Cost']*int(key))
             # print()
             results.append({
-                'disp_name': 'Battery Option {}'.format(count+1),
-                'description': 'This is a description',
+                'disp_name': 'Battery Parameters',
+                'description': 'The least expensive combination of batteries for your needs consists of {} unit(s).'.format(count+1),
                 'details': {
-                    'Number of Battery Units': key,
-                    'Unit Capacity': best_matches[key]['Max Discharge'],
-                    'Unit Cost': best_matches[key]['Cost'],
-                    'Total Capacity': best_matches[key]['Max Discharge']*int(key),
-                    'Total Cost': best_matches[key]['Cost']*int(key)
+                    'Number of Battery Units': [key, ' Units'],
+                    'Unit Capacity': [best_matches[key]['Max Discharge'], ' Wh'],
+                    'Unit Cost': ['R', best_matches[key]['Cost']],
+                    'Total Capacity': [best_matches[key]['Max Discharge']*int(key), ' Wh'],
+                    'Total Cost': ['R', best_matches[key]['Cost']*int(key)]
                 }
             })
+            # Filter out two more expensive options
+            
             count += 1
+        results = [min(results, key=lambda x:x['details']['Total Cost'][1])]
         return results
 
     def calculate_inverter_cost(self, inv_df, inv_rating):
@@ -269,17 +285,18 @@ class Quotation:
         count = 0
         for key in best_matches:
             results.append({
-                'disp_name': 'Inverter Option {}'.format(count+1),
-                'description': 'This is a description',
+                'disp_name': 'Inverter Parameters',
+                'description': 'The least expensive combination of inverters for your needs consists of {} unit(s).'.format(count+1),
                 'details': {
-                    'Number of Hybrid Inverter Units': key,
-                    'Unit Capacity': best_matches[key]['Hybrid Inverter Power'],
-                    'Unit Cost': best_matches[key]['Cost'],
-                    'Total Capacity': best_matches[key]['Hybrid Inverter Power']*int(key),
-                    'Total Cost': best_matches[key]['Cost']*int(key)
+                    'Number of Hybrid Inverter Units': [key, ' Units'],
+                    'Unit Capacity': [best_matches[key]['Hybrid Inverter Power'], ' W'],
+                    'Unit Cost': ['R', best_matches[key]['Cost']],
+                    'Total Capacity': [best_matches[key]['Hybrid Inverter Power']*int(key), ' W'],
+                    'Total Cost': ['R', best_matches[key]['Cost']*int(key)]
                 }
             })
             count += 1
+        results = [min(results, key=lambda x:x['details']['Total Cost'][1])]
         return results
 
     def calculate_panels_cost(self, pv_df, power_rating):
@@ -287,37 +304,38 @@ class Quotation:
         # Select row with lowest cost per watt (PV Score)
         best_value_row = pv_df[pv_df['PV Score'] == pv_df['PV Score'].min()]
         # Select row with highest power per panel
-        max_power_row = pv_df[pv_df['PV Power'] == pv_df['PV Power'].max()]
+        # max_power_row = pv_df[pv_df['PV Power'] == pv_df['PV Power'].max()]
         if len(best_value_row) > 1:
             best_value_row = best_value_row.iloc[[0]]
-        if len(max_power_row) > 1:
-            # If there are more than one with equal power - Select row with lowest cost per watt (PV Score)
-            max_power_row = max_power_row[max_power_row['PV Score'] == max_power_row['PV Score'].min()]
-            if len(max_power_row) > 1:
-                max_power_row = max_power_row.iloc[[0]]
+        # if len(max_power_row) > 1:
+        #     # If there are more than one with equal power - Select row with lowest cost per watt (PV Score)
+        #     max_power_row = max_power_row[max_power_row['PV Score'] == max_power_row['PV Score'].min()]
+            # if len(max_power_row) > 1:
+            #     max_power_row = max_power_row.iloc[[0]]
         num_panels_value = math.ceil(power_rating / best_value_row['PV Power'].item())
-        num_panels_power = math.ceil(power_rating / max_power_row['PV Power'].item())
+        # num_panels_power = math.ceil(power_rating / max_power_row['PV Power'].item())
         results = [{
-            'disp_name': 'PV Panels Option {}'.format(1),
-            'description': 'This is a description for option 1',
+            'disp_name': 'PV Panels\' Parameters',
+            'description': 'You will need to install at least {} PV Panels to meet you demand.'.format(num_panels_value),
             'details': {
-                'Number of PV Panels Required': num_panels_value,
-                'Power per Panel': best_value_row['PV Power'].item(),
-                'Cost Per Panel': best_value_row['Cost'].item(),
-                'Total Power': num_panels_value * best_value_row['PV Power'].item(),
-                'Total Cost': num_panels_value * best_value_row['Cost'].item()
+                'Number of PV Panels Required': [num_panels_value, ' Panels'],
+                'Power per Panel': [best_value_row['PV Power'].item(), ' W'],
+                'Cost Per Panel': ['R', best_value_row['Cost'].item()],
+                'Total Power': [num_panels_value * best_value_row['PV Power'].item(), ' W'],
+                'Total Cost': ['R', num_panels_value * best_value_row['Cost'].item()]
             }
         },
-        {
-            'disp_name': 'PV Panels Option {}'.format(2),
-            'description': 'This is a description for option 2',
-            'details': {
-                'Number of PV Panels Required': num_panels_power,
-                'Power per Panel': max_power_row['PV Power'].item(),
-                'Cost Per Panel': max_power_row['Cost'].item(),
-                'Total Power': num_panels_power * max_power_row['PV Power'].item(),
-                'Total Cost': num_panels_power * max_power_row['Cost'].item()
-            }
-        }]
+        # {
+        #     'disp_name': 'PV Panels Option {}'.format(2),
+        #     'description': 'This is a description for option 2',
+        #     'details': {
+        #         'Number of PV Panels Required': num_panels_power,
+        #         'Power per Panel': max_power_row['PV Power'].item(),
+        #         'Cost Per Panel': max_power_row['Cost'].item(),
+        #         'Total Power': num_panels_power * max_power_row['PV Power'].item(),
+        #         'Total Cost': num_panels_power * max_power_row['Cost'].item()
+        #     }
+        # }
+        ]
         return results
 

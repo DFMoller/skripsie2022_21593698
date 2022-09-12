@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 results_box.style.borderRadius = "1rem";
                 var new_html = "<h1 class='body-heading'>Your Quotation</h1 >"
                 // Add Input Parameters
-                new_html += "<p>" + json_obj['description'] + "</p>"
+                new_html += "<p class='quote-intro-text'>" + json_obj['description'] + "</p>"
                 new_html += "<div class='param-box'>"
                 new_html += "<h3 class='body-subheading'>" + param_obj['disp_name'] + "</h3>"
                 new_html += "<p class='param-intro-text'>" + param_obj['description'] + "</p>"
@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
                 new_html += "</div>"
                 new_html += "<h2 class='body-heading'>" + equip_obj['disp_name'] + "</h2>"
-                new_html += "<p>" + equip_obj['description'] + "</p>"
+                new_html += "<p class='quote-intro-text'>" + equip_obj['description'] + "</p>"
                 var items = equip_obj['items']
                 // Add Equipment Specification (Requirements)
                 for (var item of Object.keys(items)) {
@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
                 // Add Quotation
                 new_html += "<h2 class='body-heading'>" + quote_obj['disp_name'] + "</h2>"
-                new_html += "<p>" + quote_obj['description'] + "</p>"
+                new_html += "<p class='quote-intro-text'>" + quote_obj['description'] + "</p>"
                 var quote_items = quote_obj['items']
                 console.log(quote_obj)
                 for (var item of Object.keys(quote_items)) {
@@ -83,14 +83,24 @@ document.addEventListener("DOMContentLoaded", function() {
                         // if (item == 'battery')
                         // console.log(element)
                         new_html += "<h4 class='body-subheading'>" + element['disp_name'] + "</h4>"
+                        new_html += "<p class='param-intro-text'>" + element['description'] + "</p>"
                         for (var key of Object.keys(element['details'])) {
                             // console.log(" "+key)
                             
-                            new_html += "<p>" + key + ": " + element['details'][key] + "</p>"
+                            new_html += "<p>" + key + ": " + element['details'][key][0] + element['details'][key][1] + "</p>"
                         }
                     });
                     new_html += "</div>"
                 }
+                new_html += "<h2 class='body-heading'>Total Cost</h2>"
+                new_html += "<p class='quote-intro-text'>Find here the costs extracted from the sections above and added together.</p>"
+                new_html += "<div class='param-box'>"
+                new_html += "<h3 class='body-subheading'>Cost per Component</h3>"
+                new_html += "<p>Cost of Battery(ies): " + "R" + quote_obj['totals']['bat'] + "</p>"
+                new_html += "<p>Cost of Inverter(s): " + "R" + quote_obj['totals']['inv'] + "</p>"
+                new_html += "<p>Cost of Solar Panel(s): " + "R" + quote_obj['totals']['pv'] + "</p>"
+                new_html += "<h4 class='body-subheading'>Total: " + "R" + quote_obj['totals']['total'] + "</h4>"
+                new_html += "</div>"
                 results_box.innerHTML = new_html;
             }
         }
