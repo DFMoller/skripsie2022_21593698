@@ -86,24 +86,3 @@ def get_week(data_entries):
         peak_values.append(day[2])
         xlabels.append(day[0].strftime("%a, %d %b"))
     return usage_values, peak_values, xlabels
-
-def get_daily_average_data(datapoints):
-    daily_average_data = {
-        'usage': [],
-        'peak': [],
-        'xlabels': []
-    }
-    delta = datetime.timedelta(minutes=30)
-    lookup = [datetime.datetime(year=2022, month=1, day=1, hour=0, minute=30) + x*delta for x in range(48)]
-    for inc in lookup:
-        usage = []
-        peak = []
-        for dp in datapoints:
-            dt = datetime.datetime.strptime(dp.datetime, "%Y-%m-%d %H:%M")
-            if dt.time() == inc.time():
-                usage.append(dp.usage)
-                peak.append(dp.peak)
-        daily_average_data['usage'].append(np.median(usage))
-        daily_average_data['peak'].append(np.median(peak))
-        daily_average_data['xlabels'].append(inc.strftime('%H:%M'))
-    return daily_average_data

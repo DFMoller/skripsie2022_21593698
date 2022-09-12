@@ -1,0 +1,90 @@
+.analysis-chart-wrapper{
+    width: 100%;
+    height: 50vh;
+    margin: 2rem 0;
+}
+.quote-box{
+    display: flex;
+    flex-direction: column;
+    margin-top: 1rem;
+    width: 100%;
+    /* justify-content: center; */
+    align-items: center;
+}
+.quote-form-box{
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f1f1f1;
+    /* border: medium solid #005377; */
+    border-radius: 1rem;
+    margin: 1rem;
+    padding: 1rem;
+    height: min-content;
+}
+.quote-results-box{
+    width: 50%;
+    margin: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* background-color: lightgrey; */
+    /* justify-content: space-evenly;
+    display: grid;
+    grid-template-columns: 100%; */
+    padding: 1rem 2rem;
+}
+.quote-form{
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    width: 70%;
+}
+.pwrHours-radio, .chargeHours-radio{
+    margin: 0 0.5rem 0 1rem;
+}
+.quotation-submit{
+    width: min-width;
+    padding: 0.3rem 2rem;
+    margin: 2rem 1rem 1rem 1rem;
+    align-self: center;
+    color: #005377;
+    border: medium solid #005377;
+    border-radius: 1rem;
+    font-family: "Poppins", sans-serif;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    /* background-color: #005377; */
+}
+/* .parameters-container{
+    width: 100%;
+    display: grid;
+    grid-template-columns: 50% 50%;
+    grid-auto-rows: 1fr;
+    justify-content: space-evenly;
+} */
+.param-box{
+    width: 100%;
+    margin: 1rem;
+    padding-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    padding-left: 1rem;
+    justify-content: center;
+    border: 2px solid #005377;
+    border-radius: 1rem;
+    text-align: left;
+}
+.param-box *{
+    /* text-align: left; */
+} 
+.param-intro-text{
+    margin-bottom: 0.5rem;
+}
+.quote-intro-text{
+    text-align: center;
+}
+

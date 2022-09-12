@@ -9,92 +9,115 @@
 {% endblock %}
 
 {% block heading %}
-<h1>Analysis</h1>
+<h1>Analysis and Quotation</h1>
 {% endblock %}
 
 {% block main %}
-<div class="home-block">
+<h1 class="content-heading">Analysis and Quotation</h1>
+<p class="intro-text">Find here an analysis of your home's power consumption since installing the measurement device. The graph below shows the worst-case scenario of power consumption per 30-minute period in a 24-hour day. The data shown is not from a single day, but rather aggregated from all of the days for which the tool was installed. The usage and peak values displayed here in each 30-min period are the maximum all-time values for that specific time-period.</p>
+<div class="analysis-chart-wrapper">
     <div class="chart-box">
         <canvas class="myChart" id="myChart"></canvas>
     </div>
 </div>
+<h1 class="body-heading">Generate a Quotation</h1>
+<p class="intro-text">The goal of this quotation tool is to give you, the homeowner, an estimation of what it will cost to install a solar system to power your home during load shedding. The tool uses the conservative data shown in the chart above to make its calculation. Please use the form below to generate your quotation.</p>
+<div class="quote-box">
+    <div class="quote-form-box">
+        <h1 class="body-heading">Quotation Options</h1>
+        <p class="intro-text">Use this form to generate a personalized quotation:</p>
+        <form id="quote-form" class="quote-form" method="POST" action="{{ url_for('views.analysis') }}">
+            <input type="hidden" name="usage_values" value="{{ usage_values }}">
+            <input type="hidden" name="peak_values" value="{{ peak_values }}">
+            <h4 class="body-heading">For how many hours at a time do you want your solar system to power your home?</h4>
+            <label for="pwrHours2"><input class="pwrHours-radio" type="radio" id="pwrHours2" name="pwrHours" value="2" required>2 Hours</label>
+            <label for="pwrHours3"><input class="pwrHours-radio" type="radio" id="pwrHours3" name="pwrHours" value="3">3 Hours</label>
+            <label for="pwrHours4"><input class="pwrHours-radio" type="radio" id="pwrHours4" name="pwrHours" value="4">4 Hours</label>
+            <label for="pwrHours5"><input class="pwrHours-radio" type="radio" id="pwrHours5" name="pwrHours" value="5">5 Hours</label>
+            <h4 class="body-heading">How many hours of direct sunlight does your roof see on an average day?</h4>
+            <label for="chargeHours4"><input class="chargeHours-radio" type="radio" id="chargeHours4" name="chargeHours" value="4" required>4 Hours</label>
+            <label for="chargeHours5"><input class="chargeHours-radio" type="radio" id="chargeHours5" name="chargeHours" value="5">5 Hours</label>
+            <label for="chargeHours6"><input class="chargeHours-radio" type="radio" id="chargeHours6" name="chargeHours" value="6">6 Hours</label>
+            <label for="chargeHours7"><input class="chargeHours-radio" type="radio" id="chargeHours7" name="chargeHours" value="7">7 Hours</label>
+            <input class="quotation-submit" type="submit" value="Generate Quotation">
+        </form>
+    </div>
+    <div class='quote-results-box'></div>
+</div>
 {% endblock %}
 
 {% block javascript %}
+<script src="../static/analysis.js"></script>
 <script>
 
-    function reloadPage(){
+    document.addEventListener("DOMContentLoaded", function() {
 
-        var periodForm = document.getElementById("period-form");
-        periodForm.submit();
-
-    }
-
-    const labels = {{ xlabels | safe }};
-    
-    const data = {
-        labels: labels,
-        datasets: [{
-            label: "Usage (Wh)",
-            backgroundColor: 'rgb(0, 83, 119)',
-            borderColor: 'rgb(255, 99, 132)',
-            data: {{ usage_values | safe }},
-            yAxisID: 'y',
-        },
-        {
-            label: "Peak (W)",
-            backgroundColor: 'rgb(6, 167, 125)',
-            borderColor: 'rgb(255, 99, 120)',
-            data: {{ peak_values | safe }},
-            yAxisID: 'y1',
-        }]
-    };
-
-    const config = {
-        type: 'bar',
-        data: data,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top'
-                },
-                title: {
-                    display: true,
-                    text: 'Average Daily Power Consumption',
-                    font: {
-                        size: 20,
-                        family: "Poppins"
-                    }
-
-                }
+        const labels = {{ xlabels | safe }};
+        
+        const data = {
+            labels: labels,
+            datasets: [{
+                label: "Usage (Wh)",
+                backgroundColor: 'rgb(0, 83, 119)',
+                borderColor: 'rgb(255, 99, 132)',
+                data: {{ usage_values | safe }},
+                yAxisID: 'y',
             },
-            scales:{
-                y: {
-                    type: 'linear',
-                    title: "y",
-                    display: true,
-                    position: 'left',
-                },
-                y1: {
-                    type: 'linear',
-                    title: 'y1',
-                    display: true,
-                    position: 'right',
+            {
+                label: "Peak (W)",
+                backgroundColor: 'rgb(6, 167, 125)',
+                borderColor: 'rgb(255, 99, 120)',
+                data: {{ peak_values | safe }},
+                yAxisID: 'y1',
+            }]
+        };
 
-                    // grid line settings
-                    grid: {
-                    drawOnChartArea: false, // only want the grid lines for one axis to show up
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
                     },
+                    title: {
+                        display: true,
+                        text: 'Worst-Case Scenario Power Consumption',
+                        font: {
+                            size: 20,
+                            family: "Poppins"
+                        }
+
+                    }
                 },
-            } 
-        }
-    };
+                scales:{
+                    y: {
+                        type: 'linear',
+                        title: "y",
+                        display: true,
+                        position: 'left',
+                    },
+                    y1: {
+                        type: 'linear',
+                        title: 'y1',
+                        display: true,
+                        position: 'right',
 
-    var ctx = document.getElementById("myChart").getContext("2d");
+                        // grid line settings
+                        grid: {
+                        drawOnChartArea: false, // only want the grid lines for one axis to show up
+                        },
+                    },
+                } 
+            }
+        };
 
-    var barchart = new Chart(ctx, config);
+        var ctx = document.getElementById("myChart").getContext("2d");
+
+        var barchart = new Chart(ctx, config);
+    });
 
 </script>
 {% endblock %}

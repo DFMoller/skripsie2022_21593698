@@ -1,21 +1,21 @@
-from enum import auto
 from sqlalchemy import false
 from . import db, generate_api_key
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from .models import Client, Data
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
-import pandas as pd
-import datetime
-from .plotting import prepare_chart_data, get_daily_average_data
+import datetime, json
+from .plotting import prepare_chart_data
 from enum import Enum
+from .quotation import Quotation
+from .analysis import Analysis
 
 views = Blueprint('views', __name__) # don't have to call it the file name
 
-class Period(Enum):
-    p24h = 1
-    p72h = 2
-    p1w = 3
+# class Period(Enum):
+#     p24h = 1
+#     p72h = 2
+#     p1w = 3
 
 @views.route('/', methods=["GET", "POST"])
 @login_required
@@ -40,13 +40,25 @@ def home():
     
     return render_template("home.html", user=current_user, xlabels=xlabels, usage_values=usage_values, peak_values=peak_values, date=today, hours=hours)
 
-@views.route('/analysis', methods=['GET'])
+@views.route('/analysis', methods=['GET', 'POST'])
 @login_required
 def analysis():
-    datapoints = Data.query.filter_by(client_id=current_user.id)
-    daily_average_data = get_daily_average_data(datapoints)
-    # print('Daily Average Data', daily_average_data)
-    return render_template("analysis.html", usage_values=daily_average_data['usage'], peak_values=daily_average_data['peak'], xlabels=daily_average_data['xlabels'])
+    if request.method == 'POST':
+        usage_str  = request.form.get('usage_values').strip('][').split(', ')
+        peak_str = request.form.get('peak_values').strip('][').split(', ')
+        aggregated_data = {
+            'usage': [int(val) for val in usage_str],
+            'peak': [int(val) for val in peak_str]
+        }
+        pwrHours = int(request.form.get('pwrHours'))
+        chargeHours = int(request.form.get('chargeHours'))
+        Quote1 = Quotation(batV=48, powerHours=pwrHours, chargingHours=chargeHours, usage_mode='median', peak_mode='median', aggregated_data=aggregated_data)
+        return json.dumps(Quote1.quotation_results)
+    else:
+        datapoints = Data.query.filter_by(client_id=current_user.id)
+        Analysis1 = Analysis(datapoints)
+        # Quote1 = Quotation(batV=24, powerHours=8, chargingHours=5, datapoints=datapoints, usage_mode='median', peak_mode='median')
+        return render_template("analysis.html", xlabels=Analysis1.aggregated_data['xlabels'], usage_values=Analysis1.aggregated_data['usage'], peak_values=Analysis1.aggregated_data['peak'])
 
 @views.route('/signup', methods=["GET", "POST"])
 def signup():
