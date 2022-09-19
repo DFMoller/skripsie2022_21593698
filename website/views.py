@@ -136,3 +136,22 @@ def auth():
     api_key = generate_api_key(current_user.id, current_user.email)
 
     return render_template("auth.html", api_key=api_key, email=current_user.email)
+
+@views.route('/delete_data')
+def delete():
+
+    all_data = Data.query.all()
+
+    cutoff = datetime.datetime(2022, 9, 15, 0, 0)
+
+    datapoints_deleted = 0
+    discard = []
+    for x in all_data:
+        if datetime.datetime.strptime(x.datetime, '%Y-%m-%d %H:%M') < cutoff:
+            db.session.delete(x)
+            datapoints_deleted += 1
+            discard.append(x.datetime)
+    db.session.commit()
+    return json.dumps({
+        'datapoints_deleted': datapoints_deleted
+    })
