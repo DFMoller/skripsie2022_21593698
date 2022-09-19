@@ -3,7 +3,7 @@ from website import create_app
 
 app = create_app()
 
-app.debug = True
+app.debug = False
 
 if __name__ == "__main__":
     print('+++++ Starting app.run: +++++')
