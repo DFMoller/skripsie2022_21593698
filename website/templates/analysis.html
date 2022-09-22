@@ -14,7 +14,7 @@
 
 {% block main %}
 <h1 class="content-heading">Analysis and Quotation</h1>
-<p class="intro-text">Find here an analysis of your home's power consumption since installing the measurement device. The graph below shows the worst-case scenario of power consumption per 30-minute period in a 24-hour day. The data shown is not from a single day, but rather aggregated from all of the days for which the tool was installed. The usage and peak values displayed here in each 30-min period are the maximum all-time values for that specific time-period.</p>
+<p class="intro-text">Find here an analysis of your home's power consumption since installing the measurement device. The graph below shows the load profile for your home, divided into 30-minute periods over 24 hours. The data shown is not from a single day, but rather aggregated from all of the days for which the tool was installed. The usage and peak values displayed are the median values for all the measurements taken over multiple days for each time-period. </p>
 <div class="analysis-chart-wrapper">
     <div class="chart-box">
         <canvas class="myChart" id="myChart"></canvas>
@@ -84,11 +84,12 @@
                     },
                     title: {
                         display: true,
-                        text: 'Worst-Case Scenario Power Consumption',
+                        text: 'Load Profile',
                         font: {
                             size: 20,
                             family: "Poppins"
-                        }
+                        },
+                        color: '#005377'
 
                     }
                 },
