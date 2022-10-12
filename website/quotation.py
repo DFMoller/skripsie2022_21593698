@@ -198,7 +198,7 @@ class Quotation:
         # Calculate Cost Estimate
         cost_estimation['items']['battery']['options'] = self.calculate_battery_cost(bat_df, battery_capacity)
         cost_estimation['items']['inverter']['options'] = self.calculate_inverter_cost(inv_df, inverter_rating)
-        cost_estimation['items']['PV']['options'] = self.calculate_panels_cost(pv_df, pv_rating)
+        cost_estimation['items']['PV']['options'] = self.calculate_panels_cost(pv_df, pv_rating, safety_margin=2)
         # Add totals
         cost_estimation['totals']['bat'] = cost_estimation['items']['battery']['options'][0]['details']['total_cost']['val']
         cost_estimation['totals']['inv'] = cost_estimation['items']['inverter']['options'][0]['details']['total_cost']['val']
@@ -315,16 +315,16 @@ class Quotation:
         results = [min(results, key=lambda x:x['details']['total_cost']['val'])]
         return results
 
-    def calculate_panels_cost(self, pv_df, power_rating):
+    def calculate_panels_cost(self, pv_df, power_rating, safety_margin):
         pv_df['PV Score'] = pv_df['Cost'] / pv_df['PV Power']
         # Select row with lowest cost per watt (PV Score)
         best_value_row = pv_df[pv_df['PV Score'] == pv_df['PV Score'].min()]
         if len(best_value_row) > 1: # if multiple rows have the same rating
             best_value_row = best_value_row.iloc[[0]]
-        num_panels_value = math.ceil(power_rating / best_value_row['PV Power'].item())
+        num_panels_value = math.ceil(power_rating*safety_margin / best_value_row['PV Power'].item())
         results = [{
             'disp_name': 'PV Panels\' Size and Cost Estimation',
-            'description': f'You will need to install at least {num_panels_value} PV Panels to meet you demand.',
+            'description': f'You will need to install at least {num_panels_value} PV Panels to meet you demand. Note that your resulting PV panel array power is roughly double the required power. This is due to a safety margin that is worked into the calculation to account for panel efficiency and variations in peak sunlight hours.',
             'details': {
                 'num_units': {
                     'disp_name': 'Number of PV Panels Required',

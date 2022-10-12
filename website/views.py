@@ -54,7 +54,6 @@ def analysis():
         pwrHours = int(request.form.get('pwrHours'))
         chargeHours = int(request.form.get('chargeHours'))
         Quote1 = Quotation(batV=48, powerHours=pwrHours, chargingHours=chargeHours, usage_mode='median', peak_mode='maximum', aggregated_data=aggregated_data)
-        print(Quote1.quotation_results)
         return json.dumps(Quote1.quotation_results)
     else:
         datapoints = Data.query.filter_by(client_id=current_user.id)
