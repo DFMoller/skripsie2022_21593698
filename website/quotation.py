@@ -25,14 +25,14 @@ class Quotation:
         self.generate_equipment_results()
         self.generate_cost_estimation()
         self.check_ready_state()
+    # ensure quotation is ready to be displayed
     def check_ready_state(self):
         for category in Quotation.mode_options.keys():
             if category not in self.mode:
                 raise QuotationStateError('Quotation mode not set!')
-        # if len(self.aggregated_data) == 0:
-        #     raise QuotationStateError('Data not Aggregated for Quotation!')
         if len(self.quotation_results) == 0:
             raise QuotationStateError('Minimum parameters required for Quotation not calculated!')
+    # check if mode parameter is compatible
     def mode_set(self, usage_mode, peak_mode):
         if usage_mode in Quotation.mode_options['usage']:
             self.mode['usage'] = usage_mode
@@ -42,10 +42,11 @@ class Quotation:
             self.mode['peak'] = peak_mode
         else:
             raise KeyError('mode_set: peak mode "{}" does not exist'.format(peak_mode))
+    # determine solar system size estimation
     def generate_equipment_results(self):
         # Define Data Structure
         self.quotation_results = {
-            'description': 'Here is your generated quotation for the purchase of solar equipment to power your home during load shedding. The equipment specification shown below describes the recommended ratings for the different solar components your will need based on your load profile shown at the top of this page.',
+            'description': 'Here is your generated quotation for the purchase of solar equipment to power your home during load shedding. The "System Requirements" section describes what the minimum requirements for solar batteries, inverters and PV panels are based on your current electricity demand shown in the load profile at the top of this page. Below that, an estimated quotation is generated recommending suitable sizes for each component and an estimated cost based on market research.',
             'power': {
                 'description': 'This section displays the four parameters that are used to generate the quotation.',
                 'disp_name': 'Input Parameters',
@@ -77,12 +78,12 @@ class Quotation:
                 }
             },
             'equipment': {
-                'description': 'This section lists the important parameters that you need to consider for your solar panels, batteries and inverter(s). It only lists your personal demand from each component type and these numbers will not match the ratings of components on the market exactly. These numbers are minimum requirements.',
-                'disp_name': 'Equipment Specification',
+                'description': 'This section lists the important parameters that you need to consider for your solar panels, batteries and inverter(s). It only lists your personal demand from each component type and these numbers will not match the ratings of components on the market exactly. These numbers are minimum requirements to meet your home\'s existing demand.',
+                'disp_name': 'System Requirements',
                 'items': {
                     'battery': {
-                        'description': 'Battery Description',
-                        'disp_name': 'Battery Specification',
+                        'description': 'Here is the minimum 48V solar battery capacity required to meet your home\'s demand. The battery or combination of batteries selected in the quotation meets this requirement.',
+                        'disp_name': 'Battery Requirements',
                         'specs': {
                             'Capacity': {
                                 'val': 0,
@@ -95,8 +96,8 @@ class Quotation:
                         }
                     },
                     'inverter': {
-                        'description': 'Inverter Description',
-                        'disp_name': 'Inverter Specification',
+                        'description': f'Here is the minimum hybrid inverter power rating required to meet your demand. The DC voltage is selected to match the battery voltage of {self.battery_voltage}V and the AC voltage matches the 230V mains voltage in South Africa. One or more inverters are selected in the quotation to meet this requirement.',
+                        'disp_name': 'Inverter Requirements',
                         'specs': {
                             'Power Rating': {
                                 'val': 0,
@@ -113,8 +114,8 @@ class Quotation:
                         }
                     },
                     'PV': {
-                        'description': 'PV Panel Description',
-                        'disp_name': 'PV Panel Specification',
+                        'description': 'The PV solar panels selected in the quotation must have a combined power of at least the power rating shown here to be able to meet your demand.',
+                        'disp_name': 'PV Panel Requirements',
                         'specs': {
                             'Power Rating': {
                                 'val': 0,
@@ -125,62 +126,46 @@ class Quotation:
                                 'unit': 'V'
                             }
                         }
-                    },
-                    # 'SC': {
-                    #     'description': 'Solar Charger Description',
-                    #     'disp_name': 'Solar Charger Specification',
-                    #     'specs': {
-                    #         'Voltage Rating': {
-                    #             'val': self.battery_voltage,
-                    #             'unit': 'V'
-                    #         },
-                    #         'Current Rating': {
-                    #             'val': 0,
-                    #             'unit': 'A'
-                    #         }
-                    #     }
-                    # }
+                    }
                 }
             }
         }
         # Power Requirements
         if self.mode['usage'] == 'median':
-            self.quotation_results['power']['params']['usage']['val'] = np.median(self.aggregated_data['usage'])
+            self.quotation_results['power']['params']['usage']['val'] = int(np.median(self.aggregated_data['usage']))
         elif self.mode['usage'] == 'maximum':
-            self.quotation_results['power']['params']['usage']['val'] = np.max(self.aggregated_data['usage'])
+            self.quotation_results['power']['params']['usage']['val'] = int(np.max(self.aggregated_data['usage']))
         if self.mode['peak'] == 'median':
-            self.quotation_results['power']['params']['peak']['val'] = np.median(self.aggregated_data['peak'])
+            self.quotation_results['power']['params']['peak']['val'] = int(np.median(self.aggregated_data['peak']))
         elif self.mode['peak'] == 'maximum':
-            self.quotation_results['power']['params']['peak']['val'] = np.max(self.aggregated_data['peak'])
+            self.quotation_results['power']['params']['peak']['val'] = int(np.max(self.aggregated_data['peak']))
         # Battery Parameters
         self.quotation_results['equipment']['items']['battery']['specs']['Capacity']['val'] = self.power_hours * self.quotation_results['power']['params']['usage']['val'] * 2
         # Inverter Parameters
         self.quotation_results['equipment']['items']['inverter']['specs']['Power Rating']['val'] = self.quotation_results['power']['params']['peak']['val']
         # PV Panel Parameters
         self.quotation_results['equipment']['items']['PV']['specs']['Power Rating']['val'] = round(self.quotation_results['equipment']['items']['battery']['specs']['Capacity']['val'] / self.quotation_results['power']['params']['chargeHrs']['val'], 0)
-        # Solar Charger Parameters
-        # self.quotation_results['equipment']['items']['SC']['specs']['Current Rating']['val'] = round(self.quotation_results['equipment']['items']['PV']['specs']['Power Rating']['val'] / self.battery_voltage, 0)
-
+        
     def generate_cost_estimation(self):
         cost_estimation = {
-            'disp_name': 'Cost Estimation',
-            'description': 'This section displays your cost estimation for each of the components you will need in your solar system. The algorithm considers multiple cases for each type of component. For example, it determines if it will be cheaper for you to purchase one big battery or two smaller batteries to be used together to meet your demand.',
+            'disp_name': 'Quotation',
+            'description': 'This section displays your size and cost estimation for each of the components you will need in your solar system. The algorithm considers multiple cases for each type of component. For example, it determines if it will be cheaper for you to purchase one big battery or two smaller batteries to be used together to meet your demand.',
             'items': {
                 'battery': {
                     'disp_name': 'Battery',
-                    'description': 'Please find here your cost estimation for your solar battery pack. The parameters and cost shown are based on real market research done in 2022.',
+                    'description': 'Please find here a quotation for your solar battery pack. The parameters and costs shown are based on your current electricity demand and real market research done in 2022.',
                     'unit': 'Wh',
                     'options': []
                 },
                 'inverter': {
                     'disp_name': 'Hybrid Inverter',
-                    'description': 'This is a description for the Hybrid Inverter\'s cost estimation',
+                    'description': 'Please find here a quotation for your hybrid inverter. The parameters and costs shown are based on your current electricity demand and real market research done in 2022.',
                     'unit': 'W',
                     'options': []
                 },
                 'PV': {
                     'disp_name': 'PV Solar Panels',
-                    'description': 'This is a description for the PV Solar Panels\' cost estimation',
+                    'description': 'Please find here a quotation for your PV solar panels. The parameters and costs shown are based on your current electricity demand and real market research done in 2022.',
                     'unit': 'W',
                     'options': []
                 }
@@ -191,10 +176,14 @@ class Quotation:
                 'pv': 0
             }
         }
-        # Read csv into DataFrame and convert stings to floats
+        # Read csv into DataFrame and convert stings to floats -- Use these first three lines on PythonAnywhere
         bat_df = pd.read_csv("/home/21593698/skripsie2022_21593698/solar_data/battery_export.csv", delimiter=';', encoding='cp1252')
         inv_df = pd.read_csv("/home/21593698/skripsie2022_21593698/solar_data/inverter_export.csv", delimiter=';', encoding='cp1252')
         pv_df = pd.read_csv("/home/21593698/skripsie2022_21593698/solar_data/panels_export.csv", delimiter=';', encoding='cp1252')
+        # Read csv into DataFrame and convert stings to floats -- Use these second three lines for localhost
+        # bat_df = pd.read_csv("solar_data/battery_export.csv", delimiter=';', encoding='cp1252')
+        # inv_df = pd.read_csv("solar_data/inverter_export.csv", delimiter=';', encoding='cp1252')
+        # pv_df = pd.read_csv("solar_data/panels_export.csv", delimiter=';', encoding='cp1252')
         # Convert strings to floats
         bat_df['Max Discharge'] = bat_df['Max Discharge'].str.replace(',', '.').astype(float)
         bat_df['Battery Capacity'] = bat_df['Battery Capacity'].str.replace(',', '.').astype(float)
@@ -211,9 +200,9 @@ class Quotation:
         cost_estimation['items']['inverter']['options'] = self.calculate_inverter_cost(inv_df, inverter_rating)
         cost_estimation['items']['PV']['options'] = self.calculate_panels_cost(pv_df, pv_rating)
         # Add totals
-        cost_estimation['totals']['bat'] = cost_estimation['items']['battery']['options'][0]['details']['Total Cost'][1]
-        cost_estimation['totals']['inv'] = cost_estimation['items']['inverter']['options'][0]['details']['Total Cost'][1]
-        cost_estimation['totals']['pv'] = cost_estimation['items']['PV']['options'][0]['details']['Total Cost'][1]
+        cost_estimation['totals']['bat'] = cost_estimation['items']['battery']['options'][0]['details']['total_cost']['val']
+        cost_estimation['totals']['inv'] = cost_estimation['items']['inverter']['options'][0]['details']['total_cost']['val']
+        cost_estimation['totals']['pv'] = cost_estimation['items']['PV']['options'][0]['details']['total_cost']['val']
         cost_estimation['totals']['total'] = cost_estimation['totals']['bat'] + cost_estimation['totals']['inv'] + cost_estimation['totals']['pv']
         # Add Cost Estimation to Quotation Results
         self.quotation_results['quotation'] = cost_estimation
@@ -238,29 +227,39 @@ class Quotation:
             best_matches['3'] = min(three_unit_matches, key=lambda x:x['Max Discharge'])
         # print('Length of best_matches:', len(best_matches))
         results = []
-        count = 0
         for key in best_matches:
-            # print('Number of Units:', key)
-            # print('Capacity per unit:', best_matches[key]['Max Discharge'])
-            # print('Total Capacity:', best_matches[key]['Max Discharge']*int(key))
-            # print('Cost per unit:', best_matches[key]['Cost'])
-            # print('Total Cost:', best_matches[key]['Cost']*int(key))
-            # print()
             results.append({
-                'disp_name': 'Battery Parameters',
-                'description': 'The least expensive combination of batteries for your needs consists of {} unit(s).'.format(count+1),
+                'disp_name': 'Battery Size and Cost Estimation',
+                'description': f'The least expensive combination of batteries for your needs consists of {key} unit(s).',
                 'details': {
-                    'Number of Battery Units': [key, ' Units'],
-                    'Unit Capacity': [best_matches[key]['Max Discharge'], ' Wh'],
-                    'Unit Cost': ['R', best_matches[key]['Cost']],
-                    'Total Capacity': [best_matches[key]['Max Discharge']*int(key), ' Wh'],
-                    'Total Cost': ['R', best_matches[key]['Cost']*int(key)]
+                    'num_units': {
+                        'disp_name': 'Number of Battery Units',
+                        'val': key
+                    },
+                    'unit_size': {
+                        'disp_name': 'Battery Capacity',
+                        'unit': 'Wh',
+                        'val': best_matches[key]['Max Discharge']
+                    },
+                    'unit_cost': {
+                        'disp_name': 'Unit Cost',
+                        'currency': 'R',
+                        'val': best_matches[key]['Cost']
+                    },
+                    'total_size': {
+                        'disp_name': 'Combined Capacity',
+                        'unit': 'Wh',
+                        'val': best_matches[key]['Max Discharge'] * int(key)
+                    },
+                    'total_cost': {
+                        'disp_name': 'Total Cost',
+                        'currency': 'R',
+                        'val': best_matches[key]['Cost']*int(key)
+                    }
                 }
             })
             # Filter out two more expensive options
-
-            count += 1
-        results = [min(results, key=lambda x:x['details']['Total Cost'][1])]
+        results = [min(results, key=lambda x:x['details']['total_cost']['val'])]
         return results
 
     def calculate_inverter_cost(self, inv_df, inv_rating):
@@ -282,60 +281,76 @@ class Quotation:
         if len(three_unit_matches) > 0:
             best_matches['3'] = min(three_unit_matches, key=lambda x:x['Hybrid Inverter Power'])
         results = []
-        count = 0
         for key in best_matches:
             results.append({
-                'disp_name': 'Inverter Parameters',
-                'description': 'The least expensive combination of inverters for your needs consists of {} unit(s).'.format(count+1),
+                'disp_name': 'Inverter Size and Cost Estimation',
+                'description': f'The least expensive combination of inverters for your needs consists of {key} unit(s).',
                 'details': {
-                    'Number of Hybrid Inverter Units': [key, ' Units'],
-                    'Unit Capacity': [best_matches[key]['Hybrid Inverter Power'], ' W'],
-                    'Unit Cost': ['R', best_matches[key]['Cost']],
-                    'Total Capacity': [best_matches[key]['Hybrid Inverter Power']*int(key), ' W'],
-                    'Total Cost': ['R', best_matches[key]['Cost']*int(key)]
+                    'num_units': {
+                        'disp_name': 'Number of Hybrid Inverter Units',
+                        'val': key
+                    },
+                    'unit_size': {
+                        'disp_name': 'Inverter Rating',
+                        'unit': 'W',
+                        'val': best_matches[key]['Hybrid Inverter Power']
+                    },
+                    'unit_cost': {
+                        'disp_name': 'Unit Cost',
+                        'currency': 'R',
+                        'val': best_matches[key]['Cost']
+                    },
+                    'total_size': {
+                        'disp_name': 'Combined Rating',
+                        'unit': 'W',
+                        'val': best_matches[key]['Hybrid Inverter Power'] * int(key)
+                    },
+                    'total_cost': {
+                        'disp_name': 'Total Cost',
+                        'currency': 'R',
+                        'val': best_matches[key]['Cost'] * int(key)
+                    }
                 }
             })
-            count += 1
-        results = [min(results, key=lambda x:x['details']['Total Cost'][1])]
+        results = [min(results, key=lambda x:x['details']['total_cost']['val'])]
         return results
 
     def calculate_panels_cost(self, pv_df, power_rating):
         pv_df['PV Score'] = pv_df['Cost'] / pv_df['PV Power']
         # Select row with lowest cost per watt (PV Score)
         best_value_row = pv_df[pv_df['PV Score'] == pv_df['PV Score'].min()]
-        # Select row with highest power per panel
-        # max_power_row = pv_df[pv_df['PV Power'] == pv_df['PV Power'].max()]
-        if len(best_value_row) > 1:
+        if len(best_value_row) > 1: # if multiple rows have the same rating
             best_value_row = best_value_row.iloc[[0]]
-        # if len(max_power_row) > 1:
-        #     # If there are more than one with equal power - Select row with lowest cost per watt (PV Score)
-        #     max_power_row = max_power_row[max_power_row['PV Score'] == max_power_row['PV Score'].min()]
-            # if len(max_power_row) > 1:
-            #     max_power_row = max_power_row.iloc[[0]]
         num_panels_value = math.ceil(power_rating / best_value_row['PV Power'].item())
-        # num_panels_power = math.ceil(power_rating / max_power_row['PV Power'].item())
         results = [{
-            'disp_name': 'PV Panels\' Parameters',
-            'description': 'You will need to install at least {} PV Panels to meet you demand.'.format(num_panels_value),
+            'disp_name': 'PV Panels\' Size and Cost Estimation',
+            'description': f'You will need to install at least {num_panels_value} PV Panels to meet you demand.',
             'details': {
-                'Number of PV Panels Required': [num_panels_value, ' Panels'],
-                'Power per Panel': [best_value_row['PV Power'].item(), ' W'],
-                'Cost Per Panel': ['R', best_value_row['Cost'].item()],
-                'Total Power': [num_panels_value * best_value_row['PV Power'].item(), ' W'],
-                'Total Cost': ['R', num_panels_value * best_value_row['Cost'].item()]
+                'num_units': {
+                    'disp_name': 'Number of PV Panels Required',
+                    'val': num_panels_value
+                },
+                'unit_size': {
+                    'disp_name': 'Panel Rating',
+                    'unit': 'W',
+                    'val': best_value_row['PV Power'].item()
+                },
+                'unit_cost': {
+                    'disp_name': 'Unit Cost',
+                    'currency': 'R',
+                    'val': best_value_row['Cost'].item()
+                },
+                'total_size': {
+                    'disp_name': 'Combined Rating',
+                    'unit': 'W',
+                    'val': num_panels_value * best_value_row['PV Power'].item()
+                },
+                'total_cost': {
+                    'disp_name': 'Total Cost',
+                    'currency': 'R',
+                    'val': num_panels_value * best_value_row['Cost'].item()
+                }
             }
-        },
-        # {
-        #     'disp_name': 'PV Panels Option {}'.format(2),
-        #     'description': 'This is a description for option 2',
-        #     'details': {
-        #         'Number of PV Panels Required': num_panels_power,
-        #         'Power per Panel': max_power_row['PV Power'].item(),
-        #         'Cost Per Panel': max_power_row['Cost'].item(),
-        #         'Total Power': num_panels_power * max_power_row['PV Power'].item(),
-        #         'Total Cost': num_panels_power * max_power_row['Cost'].item()
-        #     }
-        # }
-        ]
+        }]
         return results
 
