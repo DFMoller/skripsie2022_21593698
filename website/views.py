@@ -52,7 +52,7 @@ def analysis():
             'peak': [int(val) for val in peak_str]
         }
         pwrHours = int(request.form.get('pwrHours'))
-        chargeHours = int(request.form.get('chargeHours'))
+        chargeHours = float(request.form.get('chargeHours'))
         Quote1 = Quotation(batV=48, powerHours=pwrHours, chargingHours=chargeHours, usage_mode='median', peak_mode='maximum', aggregated_data=aggregated_data)
         return json.dumps(Quote1.quotation_results)
     else:

@@ -99,3 +99,23 @@ th{
 .hl_top{
     border-top: 1px solid #005377;
 }
+.provence-outer-box{
+    width: 100%;
+    display: flex;
+}
+.provence-inner-box{
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+@media only screen and (max-width: 1200px) {
+    .quote-form-box, .quote-results-box {
+        width: 70%;
+    }
+}
+@media only screen and (max-width: 850px) {
+    .quote-form-box, .quote-results-box {
+        width: 90%;
+    }
+}

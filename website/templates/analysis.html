@@ -25,20 +25,33 @@
 <div class="quote-box">
     <div class="quote-form-box">
         <h1 class="body-heading">Quotation Options</h1>
-        <p class="intro-text">Use this form to generate a personalized quotation:</p>
+        <p class="intro-text">Use this form to generate a personalized quotation</p>
         <form id="quote-form" class="quote-form" method="POST" action="{{ url_for('views.analysis') }}">
             <input type="hidden" name="usage_values" value="{{ usage_values }}">
             <input type="hidden" name="peak_values" value="{{ peak_values }}">
             <h4 class="body-heading">For how many hours at a time do you want your solar system to power your home?</h4>
-            <label for="pwrHours2"><input class="pwrHours-radio" type="radio" id="pwrHours2" name="pwrHours" value="2" required>2 Hours</label>
+            <input type="range" id="pwrHours" name="pwrHours" min="2" max="8">
+            <label id="pwrHoursLabel" for="pwrHours"></label>
+            <!-- <label for="pwrHours2"><input class="pwrHours-radio" type="radio" id="pwrHours2" name="pwrHours" value="2" required>2 Hours</label>
             <label for="pwrHours3"><input class="pwrHours-radio" type="radio" id="pwrHours3" name="pwrHours" value="3">3 Hours</label>
             <label for="pwrHours4"><input class="pwrHours-radio" type="radio" id="pwrHours4" name="pwrHours" value="4">4 Hours</label>
-            <label for="pwrHours5"><input class="pwrHours-radio" type="radio" id="pwrHours5" name="pwrHours" value="5">5 Hours</label>
-            <h4 class="body-heading">How many hours of direct sunlight does your roof see on an average day?</h4>
-            <label for="chargeHours4"><input class="chargeHours-radio" type="radio" id="chargeHours4" name="chargeHours" value="4" required>4 Hours</label>
-            <label for="chargeHours5"><input class="chargeHours-radio" type="radio" id="chargeHours5" name="chargeHours" value="5">5 Hours</label>
-            <label for="chargeHours6"><input class="chargeHours-radio" type="radio" id="chargeHours6" name="chargeHours" value="6">6 Hours</label>
-            <label for="chargeHours7"><input class="chargeHours-radio" type="radio" id="chargeHours7" name="chargeHours" value="7">7 Hours</label>
+            <label for="pwrHours5"><input class="pwrHours-radio" type="radio" id="pwrHours5" name="pwrHours" value="5">5 Hours</label> -->
+            <h4 class="body-heading">Please select your provence:</h4>
+            <div class="provence-outer-box">
+                <div class="provence-inner-box">
+                    <label for="chargeHours_EasternCape"><input class="chargeHours-radio" type="radio" id="chargeHours_EasternCape" name="chargeHours" value="4.3" required>Eastern Cape</label>
+                    <label for="chargeHours_FreeState"><input class="chargeHours-radio" type="radio" id="chargeHours_FreeState" name="chargeHours" value="5.3">Free State</label>
+                    <label for="chargeHours_Gauteng"><input class="chargeHours-radio" type="radio" id="chargeHours_Gauteng" name="chargeHours" value="5.3">Gauteng</label>
+                    <label for="chargeHours_KwazuluNatal"><input class="chargeHours-radio" type="radio" id="chargeHours_KwazuluNatal" name="chargeHours" value="4.3">Kwazulu-Natal</label>
+                    <label for="chargeHours_Limpopo"><input class="chargeHours-radio" type="radio" id="chargeHours_Limpopo" name="chargeHours" value="4.7">Limpopo</label>
+                </div>
+                <div class="provence-inner-box">
+                    <label for="chargeHours_Mpumalanga"><input class="chargeHours-radio" type="radio" id="chargeHours_Mpumalanga" name="chargeHours" value="4.7">Mpumalanga</label>
+                    <label for="chargeHours_NorthernCape"><input class="chargeHours-radio" type="radio" id="chargeHours_NorthernCape" name="chargeHours" value="5.7">Northern Cape</label>
+                    <label for="chargeHours_NorthWest"><input class="chargeHours-radio" type="radio" id="chargeHours_NorthWest" name="chargeHours" value="5.5">North West</label>
+                    <label for="chargeHours_WesternCape"><input class="chargeHours-radio" type="radio" id="chargeHours_WesternCape" name="chargeHours" value="4.7">Western Cape</label>
+                </div>
+            </div>
             <input class="quotation-submit" type="submit" value="Generate Quotation">
         </form>
     </div>
@@ -51,6 +64,14 @@
 <script>
 
     document.addEventListener("DOMContentLoaded", function() {
+
+        const pwrHoursInput = document.getElementById("pwrHours");
+        const pwrHoursLabel = document.getElementById("pwrHoursLabel");
+        pwrHoursLabel.innerHTML = pwrHoursInput.value;
+        pwrHoursInput.addEventListener('input', (event) => {
+            let pwrHours = pwrHoursInput.value;
+            pwrHoursLabel.innerHTML = pwrHours;
+        });        
 
         const labels = {{ xlabels | safe }};
         
