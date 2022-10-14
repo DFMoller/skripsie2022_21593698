@@ -176,14 +176,18 @@ class Quotation:
                 'pv': 0
             }
         }
-        # Read csv into DataFrame and convert stings to floats -- Use these first three lines on PythonAnywhere
-        bat_df = pd.read_csv("/home/21593698/skripsie2022_21593698/solar_data/battery_export.csv", delimiter=';', encoding='cp1252')
-        inv_df = pd.read_csv("/home/21593698/skripsie2022_21593698/solar_data/inverter_export.csv", delimiter=';', encoding='cp1252')
-        pv_df = pd.read_csv("/home/21593698/skripsie2022_21593698/solar_data/panels_export.csv", delimiter=';', encoding='cp1252')
-        # Read csv into DataFrame and convert stings to floats -- Use these second three lines for localhost
-        # bat_df = pd.read_csv("solar_data/battery_export.csv", delimiter=';', encoding='cp1252')
-        # inv_df = pd.read_csv("solar_data/inverter_export.csv", delimiter=';', encoding='cp1252')
-        # pv_df = pd.read_csv("solar_data/panels_export.csv", delimiter=';', encoding='cp1252')
+        try:
+            # Use these three lines on PythonAnywhere
+            bat_df = pd.read_csv("/home/21593698/skripsie2022_21593698/solar_data/battery_export.csv", delimiter=';', encoding='cp1252')
+            inv_df = pd.read_csv("/home/21593698/skripsie2022_21593698/solar_data/inverter_export.csv", delimiter=';', encoding='cp1252')
+            pv_df = pd.read_csv("/home/21593698/skripsie2022_21593698/solar_data/panels_export.csv", delimiter=';', encoding='cp1252')
+            print("PythonAnywhere detected: Using full pathnames for PythonAnywhere file structure")
+        except FileNotFoundError as err:
+            print("Localhost detected: Using local paths")
+            # Use these three lines for localhost
+            bat_df = pd.read_csv("solar_data/battery_export.csv", delimiter=';', encoding='cp1252')
+            inv_df = pd.read_csv("solar_data/inverter_export.csv", delimiter=';', encoding='cp1252')
+            pv_df = pd.read_csv("solar_data/panels_export.csv", delimiter=';', encoding='cp1252')
         # Convert strings to floats
         bat_df['Max Discharge'] = bat_df['Max Discharge'].str.replace(',', '.').astype(float)
         bat_df['Battery Capacity'] = bat_df['Battery Capacity'].str.replace(',', '.').astype(float)
