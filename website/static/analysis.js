@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 new_html += "<tr><td>Battery(ies)</td><td>" + num_bat + "</td><td>R " + bat_unit_cost + "</td><td>R " + bat_total_cost + "</td></tr>";
                 new_html += "<tr><td>Inverter(s)</td><td>" + num_inv + "</td><td>R " + inv_unit_cost + "</td><td>R " + inv_total_cost + "</td></tr>";
                 new_html += "<tr><td>PV Panel(s)</td><td>" + num_pan + "</td><td>R " + pan_unit_cost + "</td><td>R " + pan_total_cost + "</td></tr>";
-                new_html += "<tr><td class='hl_top'><strong>Total Cost</strong></td><td class='hl_top'> </td><td class='hl_top'> </td><td class='hl_top'><strong>R " + total_cost + "</strong></td></tr>";
+                new_html += "<tr><td class='hl_top'><strong>Total Cost</strong></td><td class='hl_top'>Excl. Intallation Cost</td><td class='hl_top'> </td><td class='hl_top'><strong>R " + total_cost + "</strong></td></tr>";
                 new_html += "</div>"
                 results_box.innerHTML = new_html;
             }
