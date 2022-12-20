@@ -1,6 +1,6 @@
 from sqlalchemy import false
 from . import db, generate_api_key
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
 from .models import Client, Data
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
@@ -39,6 +39,21 @@ def home():
     today = str(datetime.datetime.today().date())
     
     return render_template("home.html", user=current_user, xlabels=xlabels, usage_values=usage_values, peak_values=peak_values, date=today, hours=hours)
+
+@views.route('/csv', methods=['GET'])
+@login_required
+def csv():
+    datapoints = Data.query.filter_by(client_id=current_user.id)
+    csv = 'datetime,usage,peak\n'
+    for dp in datapoints:
+        csv += f'{dp.datetime},{dp.usage},{dp.peak}'
+        csv += '\n'
+        response = make_response(csv)
+    cd = 'attachment; filename=measurements.csv'
+    response.headers['Content-Disposition'] = cd
+    response.mimetype='text/csv'
+    return response
+
 
 @views.route('/analysis', methods=['GET', 'POST'])
 @login_required
